@@ -17,6 +17,8 @@
 // for further details. Graphical resources without explicit references to a
 // different license and copyright still refer to this GPL.
 
+#include <iostream>
+
 #include <tao/pegtl.hpp>
 
 #include "Throw.h"
@@ -27,10 +29,12 @@
 
 int main(int argc, char* argv[]) {
     std::string content;
-    std::string command { "1d6" };
+    std::string command { "160" };
 
-    tao::pegtl::string_input in(content, command);
+    tao::pegtl::memory_input in(content, "");
 
-    Dicer::Throw result;
+    std::string result;
     pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, result);
+
+    std::cout << result.c_str();
 }

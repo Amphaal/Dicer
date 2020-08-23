@@ -7,9 +7,10 @@ FetchContent_Declare(pegtl
 FetchContent_MakeAvailable(pegtl)
 
 #lib
-add_library(dicer STATIC)
+# add_library(dicer STATIC)
+add_executable(dicer)
 
-link_libraries(dicer PRIVATE taocpp::pegtl)
+target_link_libraries(dicer PRIVATE taocpp::pegtl)
 
 target_include_directories(dicer
     PRIVATE include/dicer

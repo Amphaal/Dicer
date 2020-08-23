@@ -23,33 +23,22 @@
 
 #include <tao/pegtl.hpp>
 
+#include "Throw.h"
+
 namespace pegtl = tao::pegtl;
 
 namespace Dicer {
 
 namespace PEGTL {
 
-// Parsing rule that matches a literal "Hello, ".
+struct sign : pegtl::one< '+', '-', '/', '*', '^'> {};
+struct dice_throws : pegtl::plus< pegtl::digit > {};
+struct dice_separator : pegtl::one< 'd', 'D' > {};
+struct dice_faces : pegtl::plus< pegtl::digit > {};
 
-struct prefix
-    : pegtl::string< 'H', 'e', 'l', 'l', 'o', ',', ' ' >
-{};
+struct dice_throw : pegtl::must< dice_throws, dice_separator, dice_faces> {};
 
-// Parsing rule that matches a non-empty sequence of
-// alphabetic ascii-characters with greedy-matching.
-
-struct name
-    : pegtl::plus< pegtl::alpha >
-{};
-
-// Parsing rule that matches a sequence of the 'prefix'
-// rule, the 'name' rule, a literal "!", and 'eof'
-// (end-of-file/input), and that throws an exception
-// on failure.
-
-struct grammar
-    : pegtl::must< prefix, name, pegtl::one< '!' >, pegtl::eof >
-{};
+struct grammar : pegtl::must< dice_throws, pegtl::eof > {};
 
 // Class template for user-defined actions that does
 // nothing by default.
@@ -63,7 +52,7 @@ struct action
 // with the portion of the input that matched the rule.
 
 template<>
-struct action< name > {
+struct action< dice_throw > {
     template< typename ParseInput >
     static void apply(const ParseInput& in, std::string& v) {
         v = in.string();

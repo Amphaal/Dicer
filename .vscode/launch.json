@@ -14,7 +14,7 @@
             "program": "${workspaceFolder}/_gen/bin/tests",
             "MIMode": "lldb",
             "windows": {
-                "program": "${workspaceFolder}/_gen/bin/tests.exe",
+                "program": "${workspaceFolder}/_gen/bin/dicer.exe",
                 "miDebuggerPath": "${env:MINGW64_ROOT}/bin/gdb.exe",
                 "MIMode": "gdb"
             }

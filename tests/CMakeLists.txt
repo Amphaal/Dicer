@@ -1,10 +1,3 @@
-#catch2
-include(FetchContent)
-FetchContent_Declare(catch2
-    GIT_REPOSITORY  "https://github.com/catchorg/Catch2.git"
-)
-FetchContent_MakeAvailable(catch2)
-
 #add tests
 add_subdirectory(Catch2)
 add_executable(dicer_tests tests.cpp)
