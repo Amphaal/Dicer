@@ -23,7 +23,7 @@
 
 #include <tao/pegtl.hpp>
 
-#include "Throw.h"
+#include "Throw.hpp"
 
 namespace pegtl = tao::pegtl;
 
@@ -31,14 +31,19 @@ namespace Dicer {
 
 namespace PEGTL {
 
-struct sign : pegtl::one< '+', '-', '/', '*', '^'> {};
-struct dice_throws : pegtl::plus< pegtl::digit > {};
+struct associative_operator : pegtl::one< '+', '-', '/', '*', '^'> {};
 struct dice_separator : pegtl::one< 'd', 'D' > {};
+struct dice_throws : pegtl::plus< pegtl::digit > {};
+
+struct macro : pegtl::plus< pegtl::alpha > {};
+struct custom_dice_id : pegtl::plus< pegtl::alpha > {};
 struct dice_faces : pegtl::plus< pegtl::digit > {};
+struct cd_or_df : pegtl::sor<dice_faces, custom_dice_id> {};
 
-struct dice_throw : pegtl::must< dice_throws, dice_separator, dice_faces> {};
+struct dice_throw : pegtl::must< dice_throws, dice_separator, cd_or_df> {};
 
-struct grammar : pegtl::must< dice_throws, pegtl::eof > {};
+struct anything : tao::pegtl::sor<dice_throw, macro, associative_operator> {};
+struct grammar : tao::pegtl::until< tao::pegtl::eof, tao::pegtl::must< anything > > {};
 
 // Class template for user-defined actions that does
 // nothing by default.
@@ -52,12 +57,45 @@ struct action
 // with the portion of the input that matched the rule.
 
 template<>
-struct action< dice_throw > {
-    template< typename ParseInput >
-    static void apply(const ParseInput& in, std::string& v) {
-        v = in.string();
+struct action< dice_throws > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+        auto& current_dt = r.getNext_DT();
+        current_dt.howMany = stoi(in.string());
     }
 };
+
+template<>
+struct action< dice_faces > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+        auto& current_dt = r.getCurrent_DT();
+        current_dt.faces = stoi(in.string());
+    }
+};
+
+template<>
+struct action< custom_dice_id > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+        auto custom_dice_name = in.string();
+        auto& current_dt = r.getCurrent_DT();
+
+        // search for associated Named Dice
+        auto &nd_container = c.gContext->namedDices;
+        auto found = nd_container.find(custom_dice_name);
+
+        // should be found
+        if(found == nd_container.end()) {
+            // TODO should not happen
+            throw std::logic_error("WTF");
+        }
+
+        // define
+        current_dt.associatedNamedDice = &found->second;
+    }
+};
+
 
 }  // namespace PEGTL
 

@@ -20,21 +20,42 @@
 #include <iostream>
 
 #include <tao/pegtl.hpp>
-
-#include "Throw.h"
+#include <tao/pegtl/contrib/analyze.hpp>
 
 #include "DicerPEGTL.hpp"
 
 // https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/calculator.cpp
 
 int main(int argc, char* argv[]) {
-    std::string content;
-    std::string command { "160" };
+    // prepare
+    Dicer::PlayerContext pContext;
+    Dicer::GameContext gContext;
 
-    tao::pegtl::memory_input in(content, "");
+    // test named dice
+    Dicer::NamedDice nd {
+        "Force",
+        "Force dice",
+        {
+            { 1, "Weak" },
+            { 2, "Strong" },
+            { 3, "Unpredictable" }
+        }
+    };
+    gContext.namedDices.emplace(nd.diceName, nd);
 
-    std::string result;
-    pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, result);
+    // throw command
+    Dicer::ThrowCommand command {
+        &gContext,
+        &pContext,
+        "1dForce"
+    };
 
-    std::cout << result.c_str();
+    // result
+    Dicer::ThrowCommandResult result;
+
+    // parse
+    tao::pegtl::memory_input in(command.signature(), "");
+    pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, result);
+
+    auto i = true;
 }

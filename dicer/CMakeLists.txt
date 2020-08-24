@@ -20,4 +20,5 @@ target_include_directories(dicer
 
 target_sources(dicer PRIVATE
     src/Parser.cpp
+    src/DicerPEGTL.hpp
 )

@@ -22,11 +22,14 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <algorithm> 
+#include <cctype>
+#include <locale>
 
 namespace Dicer {
 
 // class MacroResult {
-
+//  public:
 // };
 
 // class Macro{
@@ -46,47 +49,63 @@ enum DiceResolvingMethod {
 };
 
 class NamedDice {
+ public:
     std::string diceName;
     std::string description;
     std::map<DiceFaceResult, std::string> resultByName;
 };
 
-class DiceThrow {
-    DiceFace faces = 0;
-    unsigned int howMany = 0;
-    NamedDice* associatedNamedDice = nullptr;
-};
-
-class DiceThrowResult {
-    DiceThrow* dThrow = nullptr;
-    std::vector<DiceFaceResult> throwsValues;
-    std::map<DiceFace, DiceFaceResult> repartition;
-    double average = 0;
-};
-
-class Recipe {
-    std::string signature;
-    bool resolved = false;
-    bool error = true;
-    std::vector<std::string> parts;
-};
-
-class Throw {
-    Recipe* recipe = nullptr;
-    double result;
-};
-
 class GameContext {
+ public:
     std::map<std::string, NamedDice> namedDices;
     // std::map<std::string, Macro>     gameMacros;
 };
 
 class PlayerContext {
+ public:
     std::map<DiceFace, std::map<DiceFaceResult, unsigned int>> occurences;
-    std::vector<Throw> playerThrows;
     // std::map<std::string, Macro> playerMacros;
 };
 
+class DiceThrow {
+ public:
+    DiceFace faces = 0;
+    unsigned int howMany = 0;
+    NamedDice* associatedNamedDice = nullptr;
+};
 
+class ThrowCommandResult {
+ public:
+    bool error = false;
+    DiceThrow& getCurrent_DT() {
+        return _throws.size() ? _throws.back() : getNext_DT();
+    }
+    DiceThrow& getNext_DT() {
+        return _throws.emplace_back();
+    }
+ private:
+    std::vector<DiceThrow> _throws;
+};
+
+class ThrowCommand {
+ public:
+    ThrowCommand(GameContext* gContext, PlayerContext* pContext, std::string signature) : gContext(gContext), pContext(pContext) {
+        // trim signature from spaces
+        signature.erase(
+            std::remove_if(signature.begin(), signature.end(), ::isspace),
+            signature.end()
+        );
+
+        // assign
+        _signature = signature;
+    }
+    GameContext* gContext = nullptr;
+    PlayerContext* pContext = nullptr;
+    std::string& signature() {
+        return _signature;
+    }
+ private:
+    std::string _signature;
+};
 
 }  // namespace Dicer
