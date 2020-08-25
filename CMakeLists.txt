@@ -22,5 +22,5 @@ add_subdirectory(dicer)
 
 #dont build tests if included as submodule
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
-    # add_subdirectory(tests)
+    add_subdirectory(tests)
 endif()

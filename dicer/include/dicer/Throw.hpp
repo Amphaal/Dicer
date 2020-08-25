@@ -40,19 +40,20 @@ namespace Dicer {
 
 using DiceFace = unsigned int;
 using DiceFaceResult = unsigned int;
-enum DiceResolvingMethod {
-    HighestValue,
-    LowestValue,
-    Aggregate,
-    Multiply,
-    Random
-};
+// enum DiceResolvingMethod {
+//     HighestValue,
+//     LowestValue,
+//     Aggregate,
+//     Multiply,
+//     Random
+// };
 
 class NamedDice {
  public:
     std::string diceName;
     std::string description;
     std::map<DiceFaceResult, std::string> resultByName;
+    DiceFace faces = 0;
 };
 
 class GameContext {
@@ -77,12 +78,15 @@ class DiceThrow {
 class ThrowCommandResult {
  public:
     bool error = false;
+    std::string errorString;
+
     DiceThrow& getCurrent_DT() {
         return _throws.size() ? _throws.back() : getNext_DT();
     }
     DiceThrow& getNext_DT() {
         return _throws.emplace_back();
     }
+
  private:
     std::vector<DiceThrow> _throws;
 };

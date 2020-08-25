@@ -7,10 +7,10 @@ FetchContent_Declare(pegtl
 FetchContent_MakeAvailable(pegtl)
 
 #lib
-# add_library(dicer STATIC)
-add_executable(dicer)
+add_library(dicer STATIC)
+set_target_properties(dicer PROPERTIES LINKER_LANGUAGE CXX)
 
-target_link_libraries(dicer PRIVATE taocpp::pegtl)
+target_link_libraries(dicer PUBLIC taocpp::pegtl)
 
 target_include_directories(dicer
     PRIVATE include/dicer
@@ -19,6 +19,7 @@ target_include_directories(dicer
 )
 
 target_sources(dicer PRIVATE
-    src/Parser.cpp
-    src/DicerPEGTL.hpp
+    include/dicer/DicerPEGTL.hpp
+    include/dicer/Throw.hpp
+    include/dicer/Resolver.hpp
 )

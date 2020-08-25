@@ -59,7 +59,7 @@ struct action
 template<>
 struct action< dice_throws > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) noexcept {
         auto& current_dt = r.getNext_DT();
         current_dt.howMany = stoi(in.string());
     }
@@ -68,7 +68,7 @@ struct action< dice_throws > {
 template<>
 struct action< dice_faces > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) noexcept {
         auto& current_dt = r.getCurrent_DT();
         current_dt.faces = stoi(in.string());
     }
@@ -87,8 +87,7 @@ struct action< custom_dice_id > {
 
         // should be found
         if(found == nd_container.end()) {
-            // TODO should not happen
-            throw std::logic_error("WTF");
+            throw std::logic_error("Cannot find associated named dice [" + custom_dice_name + "] in the game context.");
         }
 
         // define
