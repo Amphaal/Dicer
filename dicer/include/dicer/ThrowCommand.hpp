@@ -20,52 +20,43 @@
 #pragma once
 
 #include <string>
-#include <map>
-#include <vector>
-#include <algorithm>
-#include <cctype>
-#include <locale>
+
+#include "Throw.hpp"
 
 namespace Dicer {
 
-// class MacroResult {
-//  public:
-// };
-
-// class Macro{
-//  public:
-//     std::string macroName;
-//     std::string recipe;
-// };
-
-using DiceFace = unsigned int;
-using DiceFaceResult = unsigned int;
-// enum DiceResolvingMethod {
-//     HighestValue,
-//     LowestValue,
-//     Aggregate,
-//     Multiply,
-//     Random
-// };
-
-class NamedDice {
+class ThrowCommand {
  public:
-    std::string diceName;
-    std::string description;
-    std::map<DiceFaceResult, std::string> resultByName;
-    DiceFace faces = 0;
-};
+    ThrowCommand(GameContext* gContext, PlayerContext* pContext, std::string signature) : _gContext(gContext), _pContext(pContext) {
+        if(!gContext) throw std::logic_error("Empty game context provided to throw command");
+        if(!pContext) throw std::logic_error("Empty player context provided to throw command");
 
-class GameContext {
- public:
-    std::map<std::string, NamedDice> namedDices;
-    // std::map<std::string, Macro>     gameMacros;
-};
+        // trim signature from spaces
+        signature.erase(
+            std::remove_if(signature.begin(), signature.end(), ::isspace),
+            signature.end()
+        );
 
-class PlayerContext {
- public:
-    std::map<DiceFace, std::map<DiceFaceResult, unsigned int>> occurences;
-    // std::map<std::string, Macro> playerMacros;
+        // assign
+        _signature = signature;
+    }
+
+    std::string& signature() {
+        return _signature;
+    }
+
+    GameContext* gameContext() {
+        return _gContext;
+    }
+
+    PlayerContext* playerContext() {
+        return _pContext;
+    }
+
+ private:
+    GameContext* _gContext = nullptr;
+    PlayerContext* _pContext = nullptr;
+    std::string _signature;
 };
 
 }  // namespace Dicer

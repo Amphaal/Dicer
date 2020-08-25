@@ -16,5 +16,8 @@ target_include_directories(dicer
 target_sources(dicer PRIVATE
     include/dicer/DicerPEGTL.hpp
     include/dicer/Throw.hpp
+    include/dicer/DiceThrow.hpp
+    include/dicer/ThrowCommand.hpp
+    include/dicer/ThrowCommandResult.hpp
     include/dicer/Resolver.hpp
 )

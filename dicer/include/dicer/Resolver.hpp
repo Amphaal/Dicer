@@ -19,6 +19,7 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/analyze.hpp>
@@ -46,21 +47,19 @@ class Resolver {
         };
 
         // result
-        Dicer::ThrowCommandResult result;
+        Dicer::ThrowCommandResult_Private result;
 
         // parse
         tao::pegtl::memory_input in(command.signature(), "");
         try {
             pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, result);
         } catch (const std::logic_error &e) {
-            result.errorString = e.what();
-            result.error = true;
+            result.setError(e.what());
         } catch (...) {
-            result.errorString = "Unhandled error : ";
-            result.error = true;
+            result.setError("Unhandled error");
         }
 
-        return result;
+        return ThrowCommandResult(std::move(result));
     }
 
  private:

@@ -24,7 +24,7 @@
 #include "dicer/Throw.hpp"
 #include "dicer/Resolver.hpp"
 
-TEST_CASE("Test dice", "[Dice]") {
+TEST_CASE("Test parsing", "[Dice]") {
     // prepare
     Dicer::PlayerContext pContext;
     Dicer::GameContext gContext;
@@ -37,8 +37,7 @@ TEST_CASE("Test dice", "[Dice]") {
             { 1, "Weak" },
             { 2, "Strong" },
             { 3, "Unpredictable" }
-        },
-        3
+        }
     };
     gContext.namedDices.emplace(nd.diceName, nd);
 
@@ -47,5 +46,7 @@ TEST_CASE("Test dice", "[Dice]") {
 
     // command throw
     auto result = resolver.parseThrowCommand(&pContext, "1d6");
-    REQUIRE_FALSE(result.error);
+    REQUIRE_FALSE(result.hasFailed());
+    REQUIRE(result.diceThrows()[0].howMany() == 1);
+    REQUIRE(result.diceThrows()[0].faces() == 6);
 }

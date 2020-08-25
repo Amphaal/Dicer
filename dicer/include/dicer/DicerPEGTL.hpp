@@ -23,7 +23,8 @@
 
 #include <tao/pegtl.hpp>
 
-#include "Throw.hpp"
+#include "ThrowCommand.hpp"
+#include "ThrowCommandResult.hpp"
 
 namespace pegtl = tao::pegtl;
 
@@ -59,30 +60,32 @@ struct action
 template<>
 struct action< dice_throws > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) noexcept {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
         auto& current_dt = r.getNext_DT();
-        current_dt.howMany = stoi(in.string());
+        auto howMany = stoi(in.string());
+        current_dt.setHowMany(howMany);
     }
 };
 
 template<>
 struct action< dice_faces > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) noexcept {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
         auto& current_dt = r.getCurrent_DT();
-        current_dt.faces = stoi(in.string());
+        auto faces = stoi(in.string());
+        current_dt.setFaces(faces);
     }
 };
 
 template<>
 struct action< custom_dice_id > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) {
         auto custom_dice_name = in.string();
         auto& current_dt = r.getCurrent_DT();
 
         // search for associated Named Dice
-        auto &nd_container = c.gContext->namedDices;
+        auto &nd_container = c.gameContext()->namedDices;
         auto found = nd_container.find(custom_dice_name);
 
         // should be found
@@ -91,7 +94,8 @@ struct action< custom_dice_id > {
         }
 
         // define
-        current_dt.associatedNamedDice = &found->second;
+        auto namedDice = &found->second;
+        current_dt.setNamedDice(namedDice);
     }
 };
 

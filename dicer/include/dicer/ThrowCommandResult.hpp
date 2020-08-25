@@ -20,52 +20,50 @@
 #pragma once
 
 #include <string>
-#include <map>
 #include <vector>
-#include <algorithm>
-#include <cctype>
-#include <locale>
+
+#include "DiceThrow.hpp"
 
 namespace Dicer {
 
-// class MacroResult {
-//  public:
-// };
-
-// class Macro{
-//  public:
-//     std::string macroName;
-//     std::string recipe;
-// };
-
-using DiceFace = unsigned int;
-using DiceFaceResult = unsigned int;
-// enum DiceResolvingMethod {
-//     HighestValue,
-//     LowestValue,
-//     Aggregate,
-//     Multiply,
-//     Random
-// };
-
-class NamedDice {
+class ThrowCommandResult_Private {
  public:
-    std::string diceName;
-    std::string description;
-    std::map<DiceFaceResult, std::string> resultByName;
-    DiceFace faces = 0;
+    std::vector<DiceThrow> diceThrows() {
+        return _throws;
+    }
+
+    void setError(const std::string &error) {
+        _errorString = error;
+    }
+
+    DiceThrow& getCurrent_DT() {
+        return _throws.size() ? _throws.back() : getNext_DT();
+    }
+
+    DiceThrow& getNext_DT() {
+        return _throws.emplace_back();
+    }
+
+ protected:
+    std::string _errorString;
+    std::vector<DiceThrow> _throws;
 };
 
-class GameContext {
+class ThrowCommandResult : private ThrowCommandResult_Private {
  public:
-    std::map<std::string, NamedDice> namedDices;
-    // std::map<std::string, Macro>     gameMacros;
-};
+    explicit ThrowCommandResult(ThrowCommandResult_Private&& f) : ThrowCommandResult_Private(f) {}
 
-class PlayerContext {
- public:
-    std::map<DiceFace, std::map<DiceFaceResult, unsigned int>> occurences;
-    // std::map<std::string, Macro> playerMacros;
+    std::vector<DiceThrow> diceThrows() const {
+        return _throws;
+    }
+
+    bool hasFailed() const {
+        return _errorString.size();
+    }
+
+    std::string error() const {
+        return _errorString;
+    }
 };
 
 }  // namespace Dicer
