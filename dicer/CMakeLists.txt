@@ -1,10 +1,5 @@
 #PEGTL
-include(FetchContent)
-FetchContent_Declare(pegtl
-    GIT_REPOSITORY  "https://github.com/taocpp/PEGTL.git"
-)
-
-FetchContent_MakeAvailable(pegtl)
+add_subdirectory(PEGTL)
 
 #lib
 add_library(dicer STATIC)

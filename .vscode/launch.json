@@ -7,7 +7,7 @@
         {
             "targetArchitecture": "x64",
             "type": "cppdbg",
-            "preLaunchTask": "2. Build",
+            "preLaunchTask": "3. Build",
             "name" : "Tests",
             "request": "launch",
             "cwd": "${workspaceFolder}",
