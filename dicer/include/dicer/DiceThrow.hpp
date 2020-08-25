@@ -47,6 +47,7 @@ class DiceThrow {
     }
 
     void setHowMany(unsigned int howMany) {
+        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
         _howMany = howMany;
     }
 
@@ -60,8 +61,8 @@ class DiceThrow {
     }
 
  private:
-    explicit DiceThrow(unsigned int howMany) : _howMany(howMany) {
-        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
+    explicit DiceThrow(unsigned int howMany) {
+        setHowMany(howMany);
     }
 
     DiceFace _faces = 0;

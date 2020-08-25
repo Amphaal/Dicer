@@ -50,10 +50,29 @@ using DiceFaceResult = unsigned int;
 
 class NamedDice {
  public:
-    std::string diceName;
-    std::string description;
-    std::map<DiceFaceResult, std::string> resultByName;
-    DiceFace faces = 0;
+    NamedDice(const std::string &diceName, const std::string &description, std::map<DiceFaceResult, std::string> resultByName) :
+        _diceName(diceName), _description(description), _resultByName(resultByName) {
+        if(!diceName.size()) throw std::logic_error("Named dice has no name");
+        if(!description.size()) throw std::logic_error("Named dice has no description");
+        if(!_resultByName.size()) throw std::logic_error("Named dice map is empty");
+    }
+
+    std::string diceName() const {
+        return _diceName;
+    }
+
+    std::string description() const {
+        return _description;
+    }
+
+    DiceFace faces() {
+        return _resultByName.size();
+    }
+
+ private:
+    std::string _diceName;
+    std::string _description;
+    std::map<DiceFaceResult, std::string> _resultByName;
 };
 
 class GameContext {

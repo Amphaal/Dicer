@@ -24,29 +24,64 @@
 #include "dicer/Throw.hpp"
 #include "dicer/Resolver.hpp"
 
-TEST_CASE("Test parsing", "[Dice]") {
+// TEST_CASE("Test parsing simple dice throw", "[Dice]") {
+//     // prepare
+//     Dicer::PlayerContext pContext;
+//     Dicer::GameContext gContext;
+
+//     // resolver
+//     Dicer::Resolver resolver(&gContext);
+
+//     // command throw
+//     auto result = resolver.parseThrowCommand(&pContext, "1d6");
+//     REQUIRE_FALSE(result.hasFailed());
+//     REQUIRE(result.diceThrows()[0].howMany() == 1);
+//     REQUIRE(result.diceThrows()[0].faces() == 6);
+// }
+
+// TEST_CASE("Test parsing named dice throw", "[Dice]") {
+//     // prepare
+//     Dicer::PlayerContext pContext;
+//     Dicer::GameContext gContext;
+
+//     // named dice
+//     Dicer::NamedDice nd {
+//         "Force",
+//         "Force dice",
+//         {
+//             { 1, "Weak" },
+//             { 2, "Strong" },
+//             { 3, "Unpredictable" }
+//         }
+//     };
+//     gContext.namedDices.emplace(nd.diceName(), nd);
+
+//     // resolver
+//     Dicer::Resolver resolver(&gContext);
+
+//     // command throw
+//     auto result = resolver.parseThrowCommand(&pContext, "2dForce");
+//     REQUIRE_FALSE(result.hasFailed());
+//     REQUIRE(result.diceThrows()[0].howMany() == 2);
+//     REQUIRE(result.diceThrows()[0].namedDice());
+// }
+
+TEST_CASE("Must fail", "[Dice]") {
     // prepare
     Dicer::PlayerContext pContext;
     Dicer::GameContext gContext;
-
-    // named dice
-    Dicer::NamedDice nd {
-        "Force",
-        "Force dice",
-        {
-            { 1, "Weak" },
-            { 2, "Strong" },
-            { 3, "Unpredictable" }
-        }
-    };
-    gContext.namedDices.emplace(nd.diceName, nd);
 
     // resolver
     Dicer::Resolver resolver(&gContext);
 
     // command throw
-    auto result = resolver.parseThrowCommand(&pContext, "1d6");
-    REQUIRE_FALSE(result.hasFailed());
-    REQUIRE(result.diceThrows()[0].howMany() == 1);
-    REQUIRE(result.diceThrows()[0].faces() == 6);
+    REQUIRE(resolver.parseThrowCommand(&pContext, "1d6 2d8").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "0d6").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "1d1").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "-1d4").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "1D0").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "1D-7").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "3d").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "D4").hasFailed());
+    REQUIRE(resolver.parseThrowCommand(&pContext, "").hasFailed());
 }
