@@ -17,6 +17,8 @@
 // for further details. Graphical resources without explicit references to a
 // different license and copyright still refer to this GPL.
 
+#pragma once
+
 #include <iostream>
 #include <string>
 #include <utility>
@@ -25,8 +27,6 @@
 #include <tao/pegtl/contrib/analyze.hpp>
 
 #include "DicerPEGTL.hpp"
-
-// https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/calculator.cpp
 
 namespace Dicer {
 

@@ -20,6 +20,10 @@
 #pragma once
 
 #include <string>
+#include <list>
+#include <functional>
+#include <map>
+#include <vector>
 
 #include <tao/pegtl.hpp>
 
@@ -32,73 +36,187 @@ namespace Dicer {
 
 namespace PEGTL {
 
-struct associative_operator : pegtl::one< '+', '-', '/', '*', '^'> {};
-struct dice_separator : pegtl::one< 'd', 'D' > {};
-struct dice_throws : pegtl::plus< pegtl::digit > {};
+// https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/calculator.cpp
 
-struct macro : pegtl::plus< pegtl::alpha > {};
-struct custom_dice_id : pegtl::plus< pegtl::alpha > {};
-struct dice_faces : pegtl::plus< pegtl::digit > {};
-struct cd_or_df : pegtl::sor<dice_faces, custom_dice_id> {};
 
-struct dice_throw : pegtl::must< dice_throws, dice_separator, cd_or_df> {};
+// template<>
+// struct action< dice_throws > {
+//     template< typename ActionInput >
+//     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
+//         auto& current_dt = r.getNext_DT();
+//         auto howMany = stoi(in.string());
+//         current_dt.setHowMany(howMany);
+//     }
+// };
 
-struct anything : tao::pegtl::sor<dice_throw, macro, associative_operator> {};
-struct grammar : tao::pegtl::until< tao::pegtl::eof, tao::pegtl::must< anything > > {};
+// template<>
+// struct action< dice_faces > {
+//     template< typename ActionInput >
+//     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
+//         auto& current_dt = r.getCurrent_DT();
+//         auto faces = stoi(in.string());
+//         current_dt.setFaces(faces);
+//     }
+// };
 
-// Class template for user-defined actions that does
-// nothing by default.
+// template<>
+// struct action< custom_dice_id > {
+//     template< typename ActionInput >
+//     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) {
+//         auto custom_dice_name = in.string();
+//         auto& current_dt = r.getCurrent_DT();
+
+//         // search for associated Named Dice
+//         auto &nd_container = c.gameContext()->namedDices;
+//         auto found = nd_container.find(custom_dice_name);
+
+//         // should be found
+//         if(found == nd_container.end()) {
+//             throw std::logic_error("Cannot find associated named dice [" + custom_dice_name + "] in the game context.");
+//         }
+
+//         // define
+//         auto namedDice = &found->second;
+//         current_dt.setNamedDice(namedDice);
+//     }
+// };
+
+// A wrapper around the data structures that contain the binary
+// operators for the calculator.
+
+// Here the actual grammar starts.
+using namespace tao::pegtl;
+
+    struct macro : plus< alpha > {};
+    struct custom_dice_id : plus< alpha > {};
+    struct dice_faces : plus< digit > {};
+    struct df_or_cd : sor<dice_faces, custom_dice_id> {};
+    struct dice_separator : one< 'd', 'D' > {};
+    struct how_many : plus< digit > {};
+struct dice_throw : must< how_many, dice_separator, df_or_cd> {};
+
+// The calculator ignores all spaces and comments; space is a pegtl rule
+// that matches the usual ascii characters ' ', '\t', '\n' etc. In other
+// words, everything that is space is ignored.
+
+struct ignored : space {};
+
+// Since the binary operators are taken from a runtime data structure
+// (rather than hard-coding them into the grammar), we need a custom
+// rule that attempts to match the input against the current map of
+// operators.
+
+struct infix {
+    using rule_t = ascii::any::rule_t;
+
+    template< apply_mode,
+                rewind_mode,
+                template< typename... >
+                class Action,
+                template< typename... >
+                class Control,
+                typename ParseInput,
+                typename... States >
+    static bool match( ParseInput& in, const operators& b, stacks& s, States&&... /*unused*/ ) {
+        // Look for the longest match of the input against the operators in the operator map.
+
+        return match( in, b, s, std::string() );
+    }
+
+ private:
+    template< typename ParseInput >
+    static bool match( ParseInput& in, const operators& b, stacks& s, std::string t ) {
+        if( in.size( t.size() + 1 ) > t.size() ) {
+            t += in.peek_char( t.size() );
+            const auto i = b.ops().lower_bound( t );
+            if( i != b.ops().end() ) {
+            if( match( in, b, s, t ) ) {
+                return true;
+            }
+            if( i->first == t ) {
+                // While we are at it, this rule also performs the task of what would
+                // usually be an associated action: To push the matched operator onto
+                // the operator stack.
+                s.push( i->second );
+                in.bump( t.size() );
+                return true;
+            }
+            }
+        }
+        return false;
+    }
+};
+
+// A number is a non-empty sequence of digits preceded by an optional sign.
+
+struct number : plus< digit > {};
+
+struct expression;
+
+// A bracketed expression is introduced by a '(' and, in this grammar, must
+// proceed with an expression and a ')'.
+
+struct bracket
+    : if_must< one< '(' >, expression, one< ')' > >
+{};
+
+// An atomic expression, i.e. one without operators, is either a number or
+// a bracketed expression.
+
+struct atomic : sor< number, bracket, dice_throw, macro > {};
+
+// An expression is a non-empty list of atomic expressions where each pair
+// of atomic expressions is separated by an infix operator and we allow
+// the rule ignored as padding (before and after every single expression).
+
+struct expression : list< atomic, infix, ignored > {};
+
+// The top-level grammar allows one expression and then expects eof.
+
+struct grammar
+    : must< expression, eof >
+{};
+
+// After the grammar we proceed with the additional actions that are
+// required to let our calculator actually do something.
+
+// The base-case of the class template for the actions, does nothing.
 
 template< typename Rule >
 struct action
 {};
 
-// Specialisation of the user-defined action to do
-// something when the 'name' rule succeeds; is called
-// with the portion of the input that matched the rule.
+// This action will be called when the number rule matches; it converts the
+// matched portion of the input to a double and pushes it onto the operand
+// stack.
 
 template<>
-struct action< dice_throws > {
+struct action< number > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
-        auto& current_dt = r.getNext_DT();
-        auto howMany = stoi(in.string());
-        current_dt.setHowMany(howMany);
+    static void apply( const ActionInput& in, const operators& /*unused*/, stacks& s ) {
+        std::stringstream ss( in.string() );
+        double v;
+        ss >> v;
+        s.push( v );
+    }
+};
+
+// The actions for the brackets call functions that create, and collect
+// a temporary additional stack for evaluating the bracketed expression.
+
+template<>
+struct action< one< '(' > > {
+    static void apply0( const operators& /*unused*/, stacks& s ) {
+        s.open();
     }
 };
 
 template<>
-struct action< dice_faces > {
-    template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
-        auto& current_dt = r.getCurrent_DT();
-        auto faces = stoi(in.string());
-        current_dt.setFaces(faces);
+struct action< one< ')' > > {
+    static void apply0( const operators& /*unused*/, stacks& s ) {
+        s.close();
     }
 };
-
-template<>
-struct action< custom_dice_id > {
-    template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) {
-        auto custom_dice_name = in.string();
-        auto& current_dt = r.getCurrent_DT();
-
-        // search for associated Named Dice
-        auto &nd_container = c.gameContext()->namedDices;
-        auto found = nd_container.find(custom_dice_name);
-
-        // should be found
-        if(found == nd_container.end()) {
-            throw std::logic_error("Cannot find associated named dice [" + custom_dice_name + "] in the game context.");
-        }
-
-        // define
-        auto namedDice = &found->second;
-        current_dt.setNamedDice(namedDice);
-    }
-};
-
 
 }  // namespace PEGTL
 

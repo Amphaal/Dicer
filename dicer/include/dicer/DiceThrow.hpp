@@ -23,14 +23,10 @@
 
 namespace Dicer {
 
-class DiceThrow {
+class DiceThrow : public IResolvable {
  public:
-    DiceThrow() {}
-    DiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {
-        setFaces(faces);
-    }
-    DiceThrow(unsigned int howMany, NamedDice* associatedNamedDice) : DiceThrow(howMany) {
-        setNamedDice(associatedNamedDice);
+    explicit DiceThrow(unsigned int howMany) {
+        _setHowMany(howMany);
     }
 
     unsigned int howMany() const {
@@ -46,11 +42,6 @@ class DiceThrow {
         _faces = faces;
     }
 
-    void setHowMany(unsigned int howMany) {
-        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
-        _howMany = howMany;
-    }
-
     void setNamedDice(NamedDice* associatedNamedDice) {
         if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
         _associatedNamedDice = associatedNamedDice;
@@ -60,9 +51,15 @@ class DiceThrow {
         return _associatedNamedDice;
     }
 
+    // TODO
+    double resolve(GameContext *gContext, PlayerContext* pContext) const {
+
+    }
+
  private:
-    explicit DiceThrow(unsigned int howMany) {
-        setHowMany(howMany);
+    void _setHowMany(unsigned int howMany) {
+        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
+        _howMany = howMany;
     }
 
     DiceFace _faces = 0;

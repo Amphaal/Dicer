@@ -21,8 +21,10 @@
 
 #include <catch2/catch.hpp>
 
-#include "dicer/Throw.hpp"
-#include "dicer/Resolver.hpp"
+#include "dicer/DicerPEGTL.hpp"
+
+// #include "dicer/Throw.hpp"
+// #include "dicer/Resolver.hpp"
 
 // TEST_CASE("Test parsing simple dice throw", "[Dice]") {
 //     // prepare
@@ -66,22 +68,32 @@
 //     REQUIRE(result.diceThrows()[0].namedDice());
 // }
 
-TEST_CASE("Must fail", "[Dice]") {
-    // prepare
-    Dicer::PlayerContext pContext;
-    Dicer::GameContext gContext;
+TEST_CASE("t", "[]") {
+    tao::pegtl::memory_input in("3 + 2 + 4", "");
+    Dicer::PEGTL::stacks s;
+    Dicer::PEGTL::operators b;
 
-    // resolver
-    Dicer::Resolver resolver(&gContext);
+    pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, b, s);
 
-    // command throw
-    REQUIRE(resolver.parseThrowCommand(&pContext, "1d6 2d8").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "0d6").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "1d1").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "-1d4").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "1D0").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "1D-7").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "3d").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "D4").hasFailed());
-    REQUIRE(resolver.parseThrowCommand(&pContext, "").hasFailed());
+    auto i = true;
 }
+
+// TEST_CASE("Must fail", "[Dice]") {
+//     // prepare
+//     Dicer::PlayerContext pContext;
+//     Dicer::GameContext gContext;
+
+//     // resolver
+//     Dicer::Resolver resolver(&gContext);
+
+//     // command throw
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "1d6 2d8").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "0d6").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "1d1").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "-1d4").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "1D0").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "1D-7").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "3d").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "D4").hasFailed());
+//     REQUIRE(resolver.parseThrowCommand(&pContext, "").hasFailed());
+// }

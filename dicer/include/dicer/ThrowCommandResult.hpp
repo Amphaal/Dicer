@@ -21,41 +21,167 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "DiceThrow.hpp"
 
 namespace Dicer {
 
+// This enum is used for the order in which the operators are
+// evaluated, i.e. the priority of the operators; a higher
+// number indicates a lower priority.
+
+enum class order : int {};
+
+// For each binary operator known to the calculator we need an
+// instance of the following data structure with the priority,
+// and a function that performs the calculation. All operators
+// are left-associative.
+
+struct op {
+    order p;
+    std::function< double( double, double ) > operate;
+};
+
+struct CommandOperators {
+    CommandOperators() {
+        // By default we initialise with all binary operators from the C language that can be
+        // used on integers, all with their usual priority.
+
+        insert( "*", order( 5 ), []( const double l, const double r ) { return l * r; } );
+        insert( "/", order( 5 ), []( const double l, const double r ) { return l / r; } );
+        insert( "+", order( 6 ), []( const double l, const double r ) { return l + r; } );
+        insert( "-", order( 6 ), []( const double l, const double r ) { return l - r; } );
+    }
+
+    // Arbitrary user-defined operators can be added at runtime.
+
+    void insert( const std::string& name, const order p, const std::function< double( double, double ) >& f ) {
+        assert( !name.empty() );
+        m_ops.try_emplace( name, op{ p, f } );
+    }
+
+    [[nodiscard]] const std::map< std::string, op >& ops() const noexcept {
+        return m_ops;
+    }
+
+ private:
+    std::map< std::string, op > m_ops;
+};
+
+
+// Class that takes care of an operand and an operator stack for
+// shift-reduce style handling of operator priority; in a
+// reduce-step it calls on the functions contained in the op
+// instances to perform the calculation.
+
+struct DiceThrowStack : IResolvable {
+    ~DiceThrowStack() {
+        for(auto resolvablePtr : _resolvables) {
+            delete resolvablePtr;
+        }
+    }
+
+    void push( const op& b ) {
+        if(_ops.size() > _resolvables.size()) throw std::logic_error("trying to push more operations than than adequate resolvables");
+        _ops.push_back( b );
+    }
+
+    void push(const IResolvable* rslvbl) {
+        if(_resolvables.size() > _ops.size() + 1) throw std::logic_error("trying to push more resolvables than adequate operations");
+        _resolvables.push_back(rslvbl);
+    }
+
+    double resolve(GameContext *gContext, PlayerContext* pContext) const {
+        // assert
+        auto rslvblsCount = _resolvables.size();
+        assert( rslvblsCount > 1 );
+        assert( _ops.size() == rslvblsCount - 1  );
+
+        // populate first
+        double result = _resolvables.back()->resolve(gContext, pContext);
+        rslvblsCount--;
+
+        // iterate each others
+        while(rslvblsCount) {
+            auto index = rslvblsCount - 1;
+            auto &opPart = _ops[index];
+            auto &leftResolvable = _resolvables[index];
+
+            // result is right part
+            result = opPart.operate(
+                leftResolvable->resolve(gContext, pContext),
+                result
+            );
+
+            rslvblsCount--;
+        }
+
+        return result;
+    }
+
+ private:
+    std::vector< op > _ops;
+    std::vector< const IResolvable* > _resolvables;
+};
+
+// Additional layer, a "stack of stacks", to clearly show how bracketed
+// sub-expressions can be easily processed by giving them a stack of
+// their own. Once a bracketed sub-expression has finished evaluation on
+// its stack, the result is pushed onto the next higher stack, and the
+// sub-expression's temporary stack is discarded. The top-level calculation
+// is handled just like a bracketed sub-expression, on the first stack pushed
+// by the constructor.
+
 class ThrowCommandResult_Private {
  public:
-    std::vector<DiceThrow> diceThrows() {
-        return _throws;
+    ThrowCommandResult_Private() {
+        openDTS();
     }
 
     void setError(const std::string &error) {
         _errorString = error;
     }
 
-    DiceThrow& getCurrent_DT() {
-        return _throws.size() ? _throws.back() : getNext_DT();
+    CommandOperators& operators() {
+        return _operators;
     }
 
-    DiceThrow& getNext_DT() {
-        return _throws.emplace_back();
+    // open a dice throw stack
+    void openDTS() {
+        _stacks.emplace_back();
     }
+
+    // push into current dice throw stack
+    template< typename T >
+    void push( const T& t ) {
+        assert( !_stacks.empty() );
+        _stacks.back().push( t );
+    }
+
+    // close a dice throw stack
+    void closeDTS() {
+        assert( _stacks.size() > 1 );
+        const auto r = _stacks.back().finish();
+        _stacks.pop_back();
+        _stacks.back().push( r );
+    }
+
+    // TODO(amphaal) Move into specific class
+    // double finish() {
+    //     assert( _stacks.size() == 1 );
+    //     return _stacks.back().finish();
+    // }
 
  protected:
     std::string _errorString;
-    std::vector<DiceThrow> _throws;
+    std::vector<DiceThrowStack> _stacks;
+    CommandOperators _operators;
 };
 
 class ThrowCommandResult : private ThrowCommandResult_Private {
  public:
     explicit ThrowCommandResult(ThrowCommandResult_Private&& f) : ThrowCommandResult_Private(f) {}
-
-    std::vector<DiceThrow> diceThrows() const {
-        return _throws;
-    }
 
     bool hasFailed() const {
         return _errorString.size();
