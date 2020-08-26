@@ -25,6 +25,12 @@ namespace Dicer {
 
 class DiceThrow : public IResolvable {
  public:
+    enum Type {
+        Unknown,
+        Named,
+        Arithmetic
+    };
+
     explicit DiceThrow(unsigned int howMany) {
         _setHowMany(howMany);
     }
@@ -34,26 +40,59 @@ class DiceThrow : public IResolvable {
     }
 
     DiceFace faces() const {
-        return _faces;
+        switch(_type) {
+            case Type::Named: {
+                return _associatedNamedDice->facesCount();
+            }
+            break;
+
+            case Type::Arithmetic: {
+                return _faces;
+            }
+            break;
+
+            default: {
+                throw std::logic_error("Dice Throw type must be set");
+            }
+            break;
+        }
     }
 
     void setFaces(DiceFace faces) {
         if (faces <= 1) throw std::logic_error("A dice face must be > 1");
         _faces = faces;
+        _type = Arithmetic;
     }
 
     void setNamedDice(NamedDice* associatedNamedDice) {
         if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
         _associatedNamedDice = associatedNamedDice;
+        _type = Named;
     }
 
     NamedDice* namedDice() const {
         return _associatedNamedDice;
     }
 
-    // TODO(amphaal) throw dice
+    // throw dice
     double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        return _faces;
+        // try to find a throw repartition
+        auto faces = this->faces();
+        auto &occurences = pContext->occurences;
+        auto find = pContext->occurences.find(faces);
+
+        // add repartition from dice face if not already existing
+        if(find == occurences.end()) {
+            occurences.emplace(faces, faces);
+        }
+
+        // randomise
+        auto &tRepartition = occurences[faces];
+        auto result = _randomise(tRepartition);
+
+        // update throw repartition with result
+        tRepartition.addResult(result);
+        return result;
     }
 
  private:
@@ -62,8 +101,20 @@ class DiceThrow : public IResolvable {
         _howMany = howMany;
     }
 
-    DiceFace _faces = 0;
+    // generate a dice throw value from a throws repartition
+    unsigned int _randomise(const ThrowsRepartition &tRepartition) const {
+        auto &wArray = tRepartition.weightedArray();
+
+        std::random_device rd;                                      // obtain a random number from hardware
+        std::mt19937 gen(rd());                                     // seed the generator
+        std::uniform_int_distribution<> distr(1, wArray.size());    // define the range according to weighted array
+
+        return distr(gen);
+    }
+
     unsigned int _howMany = 0;
+    Type _type = Unknown;
+    DiceFace _faces = 0;
     NamedDice* _associatedNamedDice = nullptr;
 };
 

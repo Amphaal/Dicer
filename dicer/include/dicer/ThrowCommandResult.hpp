@@ -38,6 +38,13 @@ namespace Dicer {
 
 class ThrowCommandResult {
  public:
+    enum Type {
+        Unknown,
+        Arithmetic,
+        FacedDice,
+        Macro
+    };
+
     ThrowCommandResult() {
         _stacks.emplace_back(&_master);
     }
@@ -48,6 +55,15 @@ class ThrowCommandResult {
 
     CommandOperators& operators() {
         return _operators;
+    }
+
+    // TODO(amphaal) use type specification
+    void setType(const Type &type) {
+        _type = type;
+    }
+
+    Type type() const {
+        return _type;
     }
 
     // open a dice throw stack
@@ -89,6 +105,7 @@ class ThrowCommandResult {
 
  private:
     std::vector<ThrowCommandStack*> _stacks;
+    Type _type = Unknown;
 };
 
 }  // namespace Dicer
