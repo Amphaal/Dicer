@@ -41,8 +41,7 @@ class ThrowCommandExtract {
     enum Type {
         Unknown,
         Arithmetic,
-        FacedDice,
-        Macro
+        FacedDice
     };
 
     ThrowCommandExtract() {

@@ -85,9 +85,9 @@ class DiceThrow : public IResolvable {
         return _associatedNamedDice;
     }
 
-    // throw dice
-    double resolve(GameContext *gContext, PlayerContext* pContext) const {
+    std::vector<DiceFaceResult> manyResolve(GameContext *gContext, PlayerContext* pContext) const {
         // try to find a throw repartition
+        std::vector<DiceFaceResult> results;
         auto faces = this->faces();
         auto &occurences = pContext->occurences;
         auto find = pContext->occurences.find(faces);
@@ -101,7 +101,6 @@ class DiceThrow : public IResolvable {
 
         // randomise for how many we must throw
         auto howMany = _howMany;
-        std::vector<DiceFaceResult> results;
         while(howMany) {
             auto result = _randomise(tRepartition);
             tRepartition.addResult(result);  // update throw repartition with result
@@ -109,12 +108,22 @@ class DiceThrow : public IResolvable {
             howMany--;
         }
 
+        // return results
+        return results;
+    }
+
+    // throw dice
+    double resolve(GameContext *gContext, PlayerContext* pContext) const {
+        auto mRResults = manyResolve(gContext, pContext);
+
         // what to do with results
         switch(_rm) {
             case ResolvingMethod::Aggregate : {
-                return std::accumulate(results.begin(), results.end(), 0);
+                return std::accumulate(mRResults.begin(), mRResults.end(), 0);
             }
             break;
+
+            // TODO(amphaal) implement ResolvingMethod switch
 
             default : {
                 throw std::logic_error("Unimplemented resolving method for dice throw");
