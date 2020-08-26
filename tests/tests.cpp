@@ -22,9 +22,7 @@
 #include <catch2/catch.hpp>
 
 #include "dicer/DicerPEGTL.hpp"
-
-// #include "dicer/Throw.hpp"
-// #include "dicer/Resolver.hpp"
+#include "dicer/Resolver.hpp"
 
 // TEST_CASE("Test parsing simple dice throw", "[Dice]") {
 //     // prepare
@@ -69,12 +67,15 @@
 // }
 
 TEST_CASE("t", "[]") {
-    tao::pegtl::memory_input in("3 + 2 + 4", "");
-    Dicer::PEGTL::stacks s;
-    Dicer::PEGTL::operators b;
+    // prepare
+    Dicer::PlayerContext pContext;
+    Dicer::GameContext gContext;
 
-    pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, b, s);
+    // resolver
+    Dicer::Resolver resolver(&gContext);
 
+    // command throw
+    auto result = resolver.parseThrowCommand(&pContext, "3 + 2 + 4");
     auto i = true;
 }
 

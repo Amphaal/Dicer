@@ -51,9 +51,9 @@ class DiceThrow : public IResolvable {
         return _associatedNamedDice;
     }
 
-    // TODO
+    // TODO(amphaal) throw dice
     double resolve(GameContext *gContext, PlayerContext* pContext) const {
-
+        return _faces;
     }
 
  private:

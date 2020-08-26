@@ -38,49 +38,6 @@ namespace PEGTL {
 
 // https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/calculator.cpp
 
-
-// template<>
-// struct action< dice_throws > {
-//     template< typename ActionInput >
-//     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
-//         auto& current_dt = r.getNext_DT();
-//         auto howMany = stoi(in.string());
-//         current_dt.setHowMany(howMany);
-//     }
-// };
-
-// template<>
-// struct action< dice_faces > {
-//     template< typename ActionInput >
-//     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) noexcept {
-//         auto& current_dt = r.getCurrent_DT();
-//         auto faces = stoi(in.string());
-//         current_dt.setFaces(faces);
-//     }
-// };
-
-// template<>
-// struct action< custom_dice_id > {
-//     template< typename ActionInput >
-//     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult_Private& r) {
-//         auto custom_dice_name = in.string();
-//         auto& current_dt = r.getCurrent_DT();
-
-//         // search for associated Named Dice
-//         auto &nd_container = c.gameContext()->namedDices;
-//         auto found = nd_container.find(custom_dice_name);
-
-//         // should be found
-//         if(found == nd_container.end()) {
-//             throw std::logic_error("Cannot find associated named dice [" + custom_dice_name + "] in the game context.");
-//         }
-
-//         // define
-//         auto namedDice = &found->second;
-//         current_dt.setNamedDice(namedDice);
-//     }
-// };
-
 // A wrapper around the data structures that contain the binary
 // operators for the calculator.
 
@@ -117,32 +74,37 @@ struct infix {
                 class Control,
                 typename ParseInput,
                 typename... States >
-    static bool match( ParseInput& in, const operators& b, stacks& s, States&&... /*unused*/ ) {
+    static bool match( ParseInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r, States&&... /*unused*/ ) {
         // Look for the longest match of the input against the operators in the operator map.
 
-        return match( in, b, s, std::string() );
+        return match( in, r, std::string() );
     }
 
  private:
     template< typename ParseInput >
-    static bool match( ParseInput& in, const operators& b, stacks& s, std::string t ) {
+    static bool match( ParseInput& in, Dicer::ThrowCommandResult& r, std::string t ) {
+        auto &b = r.operators();
+
         if( in.size( t.size() + 1 ) > t.size() ) {
             t += in.peek_char( t.size() );
             const auto i = b.ops().lower_bound( t );
+
             if( i != b.ops().end() ) {
-            if( match( in, b, s, t ) ) {
-                return true;
-            }
-            if( i->first == t ) {
-                // While we are at it, this rule also performs the task of what would
-                // usually be an associated action: To push the matched operator onto
-                // the operator stack.
-                s.push( i->second );
-                in.bump( t.size() );
-                return true;
-            }
+                if( match( in, r, t ) ) {
+                    return true;
+                }
+
+                if( i->first == t ) {
+                    // While we are at it, this rule also performs the task of what would
+                    // usually be an associated action: To push the matched operator onto
+                    // the operator stack.
+                    r.push( i->second );
+                    in.bump( t.size() );
+                    return true;
+                }
             }
         }
+
         return false;
     }
 };
@@ -193,11 +155,12 @@ struct action
 template<>
 struct action< number > {
     template< typename ActionInput >
-    static void apply( const ActionInput& in, const operators& /*unused*/, stacks& s ) {
-        std::stringstream ss( in.string() );
-        double v;
-        ss >> v;
-        s.push( v );
+    static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+        // cast to double
+        double val = atof(in.string().c_str());
+
+        // push number
+        r.push(new Resolvable(val));
     }
 };
 
@@ -206,15 +169,63 @@ struct action< number > {
 
 template<>
 struct action< one< '(' > > {
-    static void apply0( const operators& /*unused*/, stacks& s ) {
-        s.open();
+    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+        r.openStack();
     }
 };
 
 template<>
 struct action< one< ')' > > {
-    static void apply0( const operators& /*unused*/, stacks& s ) {
-        s.close();
+    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+        r.closeStack();
+    }
+};
+
+template<>
+struct action< how_many > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+        auto howMany = stoi(in.string());
+        auto diceThrow = new DiceThrow(howMany);
+        r.push(diceThrow);
+    }
+};
+
+template<>
+struct action< dice_faces > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+        // get current dice throw
+        auto diceThrow = r.latestDiceThrow();
+        assert(diceThrow);
+
+        // set faces
+        auto faces = stoi(in.string());
+        diceThrow->setFaces(faces);
+    }
+};
+
+template<>
+struct action< custom_dice_id > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+        // get current dice throw
+        auto diceThrow = r.latestDiceThrow();
+        assert(diceThrow);
+
+        // search for associated Named Dice
+        auto custom_dice_name = in.string();
+        auto &nd_container = c.gameContext()->namedDices;
+        auto found = nd_container.find(custom_dice_name);
+
+        // should be found
+        if(found == nd_container.end()) {
+            throw std::logic_error("Cannot find associated named dice [" + custom_dice_name + "] in the game context.");
+        }
+
+        // define
+        auto namedDice = &found->second;
+        diceThrow->setNamedDice(namedDice);
     }
 };
 

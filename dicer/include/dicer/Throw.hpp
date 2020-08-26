@@ -28,16 +28,6 @@
 
 namespace Dicer {
 
-// class MacroResult {
-//  public:
-// };
-
-// class Macro{
-//  public:
-//     std::string macroName;
-//     std::string recipe;
-// };
-
 using DiceFace = unsigned int;
 using DiceFaceResult = unsigned int;
 // enum DiceResolvingMethod {
@@ -78,50 +68,12 @@ class NamedDice {
 class GameContext {
  public:
     std::map<std::string, NamedDice> namedDices;
-    // std::map<std::string, Macro>     gameMacros;
 };
 
 class PlayerContext {
  public:
     std::map<DiceFace, std::map<DiceFaceResult, unsigned int>> occurences;
     std::map<std::string, double> statsValues;
-    // std::map<std::string, Macro> playerMacros;
-};
-
-class IResolvable {
- public:
-    virtual double resolve(GameContext *gContext, PlayerContext* pContext) const = 0;
-};
-
-class Resolvable : public IResolvable {
- public:
-    explicit Resolvable(double result) : _result(result) {}
-
-    virtual double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        return _result;
-    }
-
- private:
-    double _result = 0;
-};
-
-class Stat : public IResolvable {
- public:
-    explicit Stat(const std::string &statName) : _statName(statName) {}
-
-    double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        auto &statsValues = pContext->statsValues;
-
-        auto found = statsValues.find(_statName);
-        if(found == statsValues.end()) {
-            throw std::logic_error("Cannot find associated stat value [" + _statName + "] in the player's context.");
-        }
-
-        return found->second;
-    }
-
- private:
-    std::string _statName;
 };
 
 }  // namespace Dicer

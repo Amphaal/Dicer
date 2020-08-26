@@ -47,7 +47,7 @@ class Resolver {
         };
 
         // result
-        Dicer::ThrowCommandResult_Private result;
+        Dicer::ThrowCommandResult result;
 
         // parse
         tao::pegtl::memory_input in(command.signature(), "");
@@ -59,7 +59,7 @@ class Resolver {
             result.setError("Unhandled error");
         }
 
-        return ThrowCommandResult(std::move(result));
+        return result;
     }
 
  private:
