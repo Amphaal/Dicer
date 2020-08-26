@@ -36,7 +36,7 @@ class Resolver {
         if(!_gContext) throw std::logic_error("Empty game context given as arguement for command parser!");
     }
 
-    Dicer::ThrowCommandResult parseThrowCommand(Dicer::PlayerContext* pContext, const std::string textCommand) {
+    Dicer::ThrowCommandExtract parseThrowCommand(Dicer::PlayerContext* pContext, const std::string textCommand) {
         if(!pContext) throw std::logic_error("Empty player context given as arguement for parsing command !");
 
         // throw command
@@ -46,20 +46,20 @@ class Resolver {
             textCommand
         };
 
-        // result
-        Dicer::ThrowCommandResult result;
+        // extraction
+        Dicer::ThrowCommandExtract extract;
 
         // parse
         tao::pegtl::memory_input in(command.signature(), "");
         try {
-            pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, result);
+            pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, extract);
         } catch (const std::logic_error &e) {
-            result.setError(e.what());
+            extract.setError(e.what());
         } catch (...) {
-            result.setError("Unhandled error");
+            extract.setError("Unhandled error");
         }
 
-        return result;
+        return extract;
     }
 
  private:

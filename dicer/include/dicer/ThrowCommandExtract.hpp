@@ -36,7 +36,7 @@ namespace Dicer {
 // is handled just like a bracketed sub-expression, on the first stack pushed
 // by the constructor.
 
-class ThrowCommandResult {
+class ThrowCommandExtract {
  public:
     enum Type {
         Unknown,
@@ -45,7 +45,7 @@ class ThrowCommandResult {
         Macro
     };
 
-    ThrowCommandResult() {
+    ThrowCommandExtract() {
         _stacks.emplace_back(&_master);
     }
 

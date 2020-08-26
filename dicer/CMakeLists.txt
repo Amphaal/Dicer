@@ -18,7 +18,7 @@ target_sources(dicer PRIVATE
     include/dicer/Throw.hpp
     include/dicer/DiceThrow.hpp
     include/dicer/ThrowCommand.hpp
-    include/dicer/ThrowCommandResult.hpp
+    include/dicer/ThrowCommandExtract.hpp
     include/dicer/ThrowCommandStack.hpp
     include/dicer/Resolvable.hpp
     include/dicer/Resolver.hpp

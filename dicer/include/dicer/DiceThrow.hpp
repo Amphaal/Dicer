@@ -19,6 +19,9 @@
 
 #pragma once
 
+#include <vector>
+#include <random>
+
 #include "Throw.hpp"
 
 namespace Dicer {
@@ -29,6 +32,14 @@ class DiceThrow : public IResolvable {
         Unknown,
         Named,
         Arithmetic
+    };
+
+    enum ResolvingMethod {
+        Aggregate,
+        HighestValue,
+        LowestValue,
+        Multiply,
+        Random
     };
 
     explicit DiceThrow(unsigned int howMany) {
@@ -86,13 +97,30 @@ class DiceThrow : public IResolvable {
             occurences.emplace(faces, faces);
         }
 
-        // randomise
         auto &tRepartition = occurences[faces];
-        auto result = _randomise(tRepartition);
 
-        // update throw repartition with result
-        tRepartition.addResult(result);
-        return result;
+        // randomise for how many we must throw
+        auto howMany = _howMany;
+        std::vector<DiceFaceResult> results;
+        while(howMany) {
+            auto result = _randomise(tRepartition);
+            tRepartition.addResult(result);  // update throw repartition with result
+            results.push_back(result);
+            howMany--;
+        }
+
+        // what to do with results
+        switch(_rm) {
+            case ResolvingMethod::Aggregate : {
+                return std::accumulate(results.begin(), results.end(), 0);
+            }
+            break;
+
+            default : {
+                throw std::logic_error("Unimplemented resolving method for dice throw");
+            }
+            break;
+        }
     }
 
  private:
@@ -102,7 +130,7 @@ class DiceThrow : public IResolvable {
     }
 
     // generate a dice throw value from a throws repartition
-    unsigned int _randomise(const ThrowsRepartition &tRepartition) const {
+    DiceFaceResult _randomise(const ThrowsRepartition &tRepartition) const {
         auto &wArray = tRepartition.weightedArray();
 
         std::random_device rd;                                      // obtain a random number from hardware
@@ -112,8 +140,9 @@ class DiceThrow : public IResolvable {
         return distr(gen);
     }
 
-    unsigned int _howMany = 0;
     Type _type = Unknown;
+    ResolvingMethod _rm = Aggregate;
+    unsigned int _howMany = 0;
     DiceFace _faces = 0;
     NamedDice* _associatedNamedDice = nullptr;
 };

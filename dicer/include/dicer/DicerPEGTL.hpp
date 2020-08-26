@@ -28,7 +28,7 @@
 #include <tao/pegtl.hpp>
 
 #include "ThrowCommand.hpp"
-#include "ThrowCommandResult.hpp"
+#include "ThrowCommandExtract.hpp"
 
 namespace pegtl = tao::pegtl;
 
@@ -74,7 +74,7 @@ struct infix {
                 class Control,
                 typename ParseInput,
                 typename... States >
-    static bool match( ParseInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r, States&&... /*unused*/ ) {
+    static bool match( ParseInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandExtract& r, States&&... /*unused*/ ) {
         // Look for the longest match of the input against the operators in the operator map.
 
         return match( in, r, std::string() );
@@ -82,7 +82,7 @@ struct infix {
 
  private:
     template< typename ParseInput >
-    static bool match( ParseInput& in, Dicer::ThrowCommandResult& r, std::string t ) {
+    static bool match( ParseInput& in, Dicer::ThrowCommandExtract& r, std::string t ) {
         auto &b = r.operators();
 
         if( in.size( t.size() + 1 ) > t.size() ) {
@@ -155,7 +155,7 @@ struct action
 template<>
 struct action< number > {
     template< typename ActionInput >
-    static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+    static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         // cast to double
         double val = atof(in.string().c_str());
 
@@ -169,14 +169,14 @@ struct action< number > {
 
 template<>
 struct action< one< '(' > > {
-    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         r.openStack();
     }
 };
 
 template<>
 struct action< one< ')' > > {
-    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         r.closeStack();
     }
 };
@@ -184,7 +184,7 @@ struct action< one< ')' > > {
 template<>
 struct action< how_many > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         auto howMany = stoi(in.string());
         auto diceThrow = new DiceThrow(howMany);
         r.push(diceThrow);
@@ -194,7 +194,7 @@ struct action< how_many > {
 template<>
 struct action< dice_faces > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandResult& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         // get current dice throw
         auto diceThrow = r.latestDiceThrow();
         assert(diceThrow);
@@ -208,7 +208,7 @@ struct action< dice_faces > {
 template<>
 struct action< custom_dice_id > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandResult& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandExtract& r) {
         // get current dice throw
         auto diceThrow = r.latestDiceThrow();
         assert(diceThrow);

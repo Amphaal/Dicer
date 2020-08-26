@@ -30,13 +30,6 @@ namespace Dicer {
 
 using DiceFace = unsigned int;
 using DiceFaceResult = unsigned int;
-// enum DiceResolvingMethod {
-//     HighestValue,
-//     LowestValue,
-//     Aggregate,
-//     Multiply,
-//     Random
-// };
 
 class NamedDice {
  public:
@@ -83,7 +76,7 @@ class ThrowsRepartition {
         _weightedArray[result] = resultWeight;
 
         // try to increment every other
-        for(unsigned int i = 1; i < _repartitionOf; i++) {
+        for(DiceFaceResult i = 1; i <= _repartitionOf; i++) {
             // skip added result
             if (i == result) continue;
 
@@ -107,7 +100,7 @@ class ThrowsRepartition {
 
     // a face is as strong as the face value by default
     void _generateDefaultWeightedArray() {
-        for(unsigned int i = 1; i < _repartitionOf; i++) {
+        for(DiceFaceResult i = 1; i <= _repartitionOf; i++) {
             _weightedArray[i] = _repartitionOf;
         }
     }
