@@ -29,6 +29,8 @@
 
 #include "ThrowCommand.hpp"
 #include "ThrowCommandExtract.hpp"
+#include "FacedDiceThrow.hpp"
+#include "NamedDiceThrow.hpp"
 
 namespace pegtl = tao::pegtl;
 
@@ -98,7 +100,7 @@ struct infix {
                     // While we are at it, this rule also performs the task of what would
                     // usually be an associated action: To push the matched operator onto
                     // the operator stack.
-                    r.push( i->second );
+                    r.push( &i->second );
                     in.bump( t.size() );
                     return true;
                 }
@@ -170,7 +172,7 @@ struct action< number > {
         double val = atof(in.string().c_str());
 
         // push number
-        r.push(new RNumber(val));
+        r.push(new ResolvableNumber(val));
     }
 };
 
@@ -230,7 +232,7 @@ struct action< custom_dice_id > {
 
         // generate named dice throw
         auto ndt = new NamedDiceThrow(r._bufferHowMany, namedDice);
-        r.push(fdt);
+        r.push(ndt);
     }
 };
 

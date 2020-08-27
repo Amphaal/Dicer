@@ -24,7 +24,6 @@
 #include <map>
 
 #include "ThrowCommandStack.hpp"
-#include "DiceThrow.hpp"
 
 namespace Dicer {
 

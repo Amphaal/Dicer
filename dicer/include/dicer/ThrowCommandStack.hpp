@@ -29,55 +29,12 @@
 
 namespace Dicer {
 
-// This enum is used for the order in which the operators are
-// evaluated, i.e. the priority of the operators; a higher
-// number indicates a lower priority.
-
-enum class order : int {};
-
-// For each binary operator known to the calculator we need an
-// instance of the following data structure with the priority,
-// and a function that performs the calculation. All operators
-// are left-associative.
-
-struct op {
-    order p;
-    std::function< double( double, double ) > operate;
-};
-
-struct CommandOperators {
-    CommandOperators() {
-        // By default we initialise with all binary operators from the C language that can be
-        // used on integers, all with their usual priority.
-
-        insert( "*", order( 5 ), []( const double l, const double r ) { return l * r; } );
-        insert( "/", order( 5 ), []( const double l, const double r ) { return l / r; } );
-        insert( "+", order( 6 ), []( const double l, const double r ) { return l + r; } );
-        insert( "-", order( 6 ), []( const double l, const double r ) { return l - r; } );
-    }
-
-    // Arbitrary user-defined operators can be added at runtime.
-
-    void insert( const std::string& name, const order p, const std::function< double( double, double ) >& f ) {
-        assert( !name.empty() );
-        m_ops.try_emplace( name, op{ p, f } );
-    }
-
-    [[nodiscard]] const std::map< std::string, op >& ops() const noexcept {
-        return m_ops;
-    }
-
- private:
-    std::map< std::string, op > m_ops;
-};
-
-
 // Class that takes care of an operand and an operator stack for
 // shift-reduce style handling of operator priority; in a
 // reduce-step it calls on the functions contained in the op
 // instances to perform the calculation.
 
-class ThrowCommandStack {
+class ThrowCommandStack : public IResolvable {
  public:
     ThrowCommandStack() {}
     ~ThrowCommandStack() {
@@ -86,26 +43,32 @@ class ThrowCommandStack {
         }
     }
 
-    void push( const op& b ) {
-        if(_ops.size() > _resolvables.size()) throw std::logic_error("trying to push more operations than than adequate resolvables");
-        _ops.push_back( b );
-    }
-
     void push(IResolvable* rslvbl) {
-        if(_resolvables.size() > _ops.size() + 1) throw std::logic_error("trying to push more resolvables than adequate operations");
         _resolvables.push_back(rslvbl);
-    }
-
-    const std::vector< op >& orderedOps() const {
-        return _ops;
     }
 
     const std::vector< IResolvable* >& orderedResolvables() const {
         return _resolvables;
     }
 
+    std::string resolvedDescription() const override {
+        // assert
+        auto rslvblsCount = _resolvables.size();
+        assert( rslvblsCount > 1 );
+        assert( rslvblsCount % 2 != 0 );
+
+        // populate first
+        std::string out;
+        for(auto resolvable : _resolvables) {
+            out += resolvable->resolvedDescription() + " ";
+        }
+
+        out.erase(out.size() - 1, 1);
+
+        return out;
+    }
+
  private:
-    std::vector< op > _ops;
     std::vector< IResolvable* > _resolvables;
 };
 

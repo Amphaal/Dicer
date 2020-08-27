@@ -20,19 +20,18 @@
 #pragma once
 
 #include <string>
+#include <map>
 
+#include "IResolvable.hpp"
 #include "Throw.hpp"
 
 namespace Dicer {
-
-class IResolvable {};
 
 template<class T>
 class Resolvable : public IResolvable {
  public:
     virtual ~Resolvable() {}
-    virtual T resolve(GameContext *gContext, PlayerContext* pContext) = 0;
-    virtual std::string resolvedDescription() const = 0;
+    virtual void resolve(GameContext *gContext, PlayerContext* pContext) {}
     T resolved() const {
         return _resolved;
     }
@@ -48,11 +47,7 @@ class ResolvableNumber : public Resolvable<double> {
     }
     ~ResolvableNumber() {}
 
-    double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        return _resolved;
-    }
-
-    std::string resolvedDescription(GameContext *gContext, PlayerContext* pContext) const {
+    std::string resolvedDescription() const override {
         return std::to_string(_resolved);
     }
 };
@@ -62,7 +57,7 @@ class ResolvableStat : public Resolvable<double> {
     explicit ResolvableStat(const std::string &statName) : _statName(statName) {}
     ~ResolvableStat() {}
 
-    double resolve(GameContext *gContext, PlayerContext* pContext) {
+    void resolve(GameContext *gContext, PlayerContext* pContext) override {
         auto &statsValues = pContext->statsValues;
 
         auto found = statsValues.find(_statName);
@@ -71,11 +66,9 @@ class ResolvableStat : public Resolvable<double> {
         }
 
         _resolved = found->second;
-
-        return _resolved;
     }
 
-    std::string resolvedDescription(GameContext *gContext, PlayerContext* pContext) const {
+    std::string resolvedDescription() const override {
         return _statName + "(" +  std::to_string(_resolved) + ")";
     }
 

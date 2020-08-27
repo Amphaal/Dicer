@@ -76,7 +76,7 @@ TEST_CASE("t", "[]") {
 
     // command throw
     auto result = resolver.parseThrowCommand(&pContext, "3 + 2 + 4");
-    auto i = true;
+    // TODO
 }
 
 // TEST_CASE("Must fail", "[Dice]") {
