@@ -27,7 +27,7 @@
 
 namespace Dicer {
 
-class DiceThrow : protected IResolvable<std::vector<DiceFaceResult>> {
+class DiceThrow {
  public:
     explicit DiceThrow(unsigned int howMany) {
         _setHowMany(howMany);
@@ -38,8 +38,12 @@ class DiceThrow : protected IResolvable<std::vector<DiceFaceResult>> {
     }
 
     virtual DiceFace faces() const = 0;
+    virtual std::string toString() const {
+        return std::to_string(_howMany) + "d";
+    }
 
-    std::vector<DiceFaceResult> resolve(GameContext *gContext, PlayerContext* pContext) const {
+ protected:
+    std::vector<DiceFaceResult> _resolve(PlayerContext* pContext) const {
         // try to find a throw repartition
         std::vector<DiceFaceResult> results;
         auto faces = this->faces();
@@ -66,7 +70,6 @@ class DiceThrow : protected IResolvable<std::vector<DiceFaceResult>> {
         return results;
     }
 
- protected:
     // generate a dice throw value from a throws repartition
     DiceFaceResult _randomise(const ThrowsRepartition &tRepartition) const {
         auto &wArray = tRepartition.weightedArray();
@@ -87,13 +90,13 @@ class DiceThrow : protected IResolvable<std::vector<DiceFaceResult>> {
     }
 };
 
-class NamedDiceThrow : public DiceThrow, public IResolvable<std::vector<std::string>> {
+class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::string>> {
  public:
     explicit NamedDiceThrow(unsigned int howMany, NamedDice* associatedNamedDice) : DiceThrow(howMany) {
         _setNamedDice(associatedNamedDice);
     }
 
-    DiceFace faces() const {
+    DiceFace faces() const override {
         return _associatedNamedDice->facesCount();
     }
 
@@ -102,31 +105,48 @@ class NamedDiceThrow : public DiceThrow, public IResolvable<std::vector<std::str
     }
 
     // throw dice
-    std::vector<std::string> resolve(GameContext *gContext, PlayerContext* pContext) const {
+    std::vector<std::string> resolve(GameContext *gContext, PlayerContext* pContext) {
         // setup search
-        auto mRResults = DiceThrow::resolve(gContext, pContext);
+        auto mRResults = DiceThrow::_resolve(pContext);
+
+        _resolved.clear();
 
         // find associated dice name
-        std::vector<std::string> out;
         for(auto &result : mRResults) {
             auto associatedName = _associatedNamedDice->getFaceName(result);
-            out.push_back(associatedName);
+            _resolved.push_back(associatedName);
         }
 
-        return out;
+        return _resolved;
+    }
+
+    std::string toString() const override {
+        return DiceThrow::toString() + _associatedNamedDice->diceName();
+    }
+
+    std::string resolvedDescription(GameContext *gContext, PlayerContext* pContext) const {
+        auto joinedDescriptor = std::accumulate(
+            _resolved.begin(),
+            _resolved.end(),
+            std::string(),
+            [](const std::string& a, const std::string& b) -> std::string {
+                return a + (a.length() > 0 ? ", " : "") + b;
+            }
+        );
+
+        return toString() + " : {" + joinedDescriptor + "}";
     }
 
  private:
     NamedDice* _associatedNamedDice = nullptr;
 
-     void _setNamedDice(NamedDice* associatedNamedDice) {
+    void _setNamedDice(NamedDice* associatedNamedDice) {
         if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
         _associatedNamedDice = associatedNamedDice;
     }
 };
 
-
-class FacedDiceThrow : public DiceThrow {
+class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
      enum ResolvingMethod {
         Aggregate,
@@ -140,21 +160,37 @@ class FacedDiceThrow : public DiceThrow {
         _setFaces(faces);
     }
 
-    DiceFace faces() const {
+    DiceFace faces() const override {
        return _faces;
     }
 
-    std::vector<DiceFaceResult> resolve(GameContext *gContext, PlayerContext* pContext) const {
-        return DiceThrow::resolve(gContext, pContext);
+    std::vector<DiceFaceResult> resolve(GameContext *gContext, PlayerContext* pContext) {
+        _resolved = DiceThrow::_resolve(pContext);
+        return _resolved;
+    }
+
+    std::string toString() const override {
+        return DiceThrow::toString() + std::to_string(_faces);
+    }
+
+    std::string resolvedDescription(GameContext *gContext, PlayerContext* pContext) const {
+        auto joinedDescriptor = std::accumulate(
+            _resolved.begin(),
+            _resolved.end(),
+            std::string(),
+            [](const std::string& a, const DiceFaceResult& b) -> std::string {
+                return a + (a.length() > 0 ? ", " : "") + std::to_string(b);
+            }
+        );
+
+        return toString() + " : {" + joinedDescriptor + "}";
     }
 
     double resolveFromMethod(GameContext *gContext, PlayerContext* pContext) const {
-        auto mRResults = resolve(gContext, pContext);
-
         // what to do with results
         switch(_rm) {
             case ResolvingMethod::Aggregate : {
-                return std::accumulate(mRResults.begin(), mRResults.end(), 0);
+                return std::accumulate(_resolved.begin(), _resolved.end(), 0);
             }
             break;
 

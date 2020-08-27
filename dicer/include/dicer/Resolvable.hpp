@@ -25,32 +25,44 @@
 
 namespace Dicer {
 
+class IResolvable {};
+
 template<class T>
-class IResolvable {
+class Resolvable : public IResolvable {
  public:
-    virtual ~IResolvable() {}
-    virtual T resolve(GameContext *gContext, PlayerContext* pContext) const = 0;
-};
-
-class Resolvable : public IResolvable<double> {
- public:
-    explicit Resolvable(double result) : _result(result) {}
-    ~Resolvable() {}
-
-    double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        return _result;
+    virtual ~Resolvable() {}
+    virtual T resolve(GameContext *gContext, PlayerContext* pContext) = 0;
+    virtual std::string resolvedDescription() const = 0;
+    T resolved() const {
+        return _resolved;
     }
 
- private:
-    double _result = 0;
+ protected:
+    T _resolved;
 };
 
-class Stat : public IResolvable<double> {
+class ResolvableNumber : public Resolvable<double> {
  public:
-    explicit Stat(const std::string &statName) : _statName(statName) {}
-    ~Stat() {}
+    explicit ResolvableNumber(double result) {
+        _resolved = result;
+    }
+    ~ResolvableNumber() {}
 
     double resolve(GameContext *gContext, PlayerContext* pContext) const {
+        return _resolved;
+    }
+
+    std::string resolvedDescription(GameContext *gContext, PlayerContext* pContext) const {
+        return std::to_string(_resolved);
+    }
+};
+
+class ResolvableStat : public Resolvable<double> {
+ public:
+    explicit ResolvableStat(const std::string &statName) : _statName(statName) {}
+    ~ResolvableStat() {}
+
+    double resolve(GameContext *gContext, PlayerContext* pContext) {
         auto &statsValues = pContext->statsValues;
 
         auto found = statsValues.find(_statName);
@@ -58,7 +70,13 @@ class Stat : public IResolvable<double> {
             throw std::logic_error("Cannot find associated stat value [" + _statName + "] in the player's context.");
         }
 
-        return found->second;
+        _resolved = found->second;
+
+        return _resolved;
+    }
+
+    std::string resolvedDescription(GameContext *gContext, PlayerContext* pContext) const {
+        return _statName + "(" +  std::to_string(_resolved) + ")";
     }
 
  private:

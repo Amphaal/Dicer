@@ -38,12 +38,6 @@ namespace Dicer {
 
 class ThrowCommandExtract {
  public:
-    enum Type {
-        Unknown,
-        Arithmetic,
-        FacedDice
-    };
-
     ThrowCommandExtract() {
         _stacks.emplace_back(&_master);
     }
@@ -54,15 +48,6 @@ class ThrowCommandExtract {
 
     CommandOperators& operators() {
         return _operators;
-    }
-
-    // TODO(amphaal) use type specification
-    void setType(const Type &type) {
-        _type = type;
-    }
-
-    Type type() const {
-        return _type;
     }
 
     // open a dice throw stack
@@ -79,10 +64,6 @@ class ThrowCommandExtract {
         _stacks.back()->push( t );
     }
 
-    DiceThrow* latestDiceThrow() const {
-        return dynamic_cast<DiceThrow*>(_stacks.back()->latest());
-    }
-
     // close a dice throw stack
     void closeStack() {
         assert( !_stacks.empty() );
@@ -97,6 +78,12 @@ class ThrowCommandExtract {
         return _errorString;
     }
 
+    const ThrowCommandStack& masterStack() const {
+        return _master;
+    }
+
+    unsigned int _bufferHowMany = 0;
+
  protected:
     std::string _errorString;
     ThrowCommandStack _master;
@@ -104,7 +91,6 @@ class ThrowCommandExtract {
 
  private:
     std::vector<ThrowCommandStack*> _stacks;
-    Type _type = Unknown;
 };
 
 }  // namespace Dicer

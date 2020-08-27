@@ -44,13 +44,13 @@ namespace PEGTL {
 // Here the actual grammar starts.
 using namespace tao::pegtl;
 
-    struct macro : plus< alpha > {};
     struct custom_dice_id : plus< alpha > {};
     struct dice_faces : plus< digit > {};
     struct df_or_cd : sor<dice_faces, custom_dice_id> {};
     struct dice_separator : one< 'd', 'D' > {};
     struct how_many : plus< digit > {};
 struct dice_throw : must< how_many, dice_separator, df_or_cd> {};
+struct macro : plus< alpha > {};
 
 // The calculator ignores all spaces and comments; space is a pegtl rule
 // that matches the usual ascii characters ' ', '\t', '\n' etc. In other
@@ -148,6 +148,16 @@ template< typename Rule >
 struct action
 {};
 
+template<>
+struct action< macro > {
+    template< typename ActionInput >
+    static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+        // TODO(amphaal)
+        throw std::logic_error("Unimplemented macro functionality");
+    }
+};
+
+
 // This action will be called when the number rule matches; it converts the
 // matched portion of the input to a double and pushes it onto the operand
 // stack.
@@ -160,7 +170,7 @@ struct action< number > {
         double val = atof(in.string().c_str());
 
         // push number
-        r.push(new Resolvable(val));
+        r.push(new RNumber(val));
     }
 };
 
@@ -186,8 +196,7 @@ struct action< how_many > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         auto howMany = stoi(in.string());
-        auto diceThrow = new DiceThrow(howMany);
-        r.push(diceThrow);
+        r._bufferHowMany = howMany;
     }
 };
 
@@ -195,13 +204,10 @@ template<>
 struct action< dice_faces > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        // get current dice throw
-        auto diceThrow = r.latestDiceThrow();
-        assert(diceThrow);
-
-        // set faces
+        // generate faced dice throw
         auto faces = stoi(in.string());
-        diceThrow->setFaces(faces);
+        auto fdt = new FacedDiceThrow(r._bufferHowMany, faces);
+        r.push(fdt);
     }
 };
 
@@ -209,10 +215,6 @@ template<>
 struct action< custom_dice_id > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandExtract& r) {
-        // get current dice throw
-        auto diceThrow = r.latestDiceThrow();
-        assert(diceThrow);
-
         // search for associated Named Dice
         auto custom_dice_name = in.string();
         auto &namedDices = c.gameContext()->namedDices;
@@ -225,8 +227,10 @@ struct action< custom_dice_id > {
 
         // define
         auto namedDice = &found->second;
-        diceThrow->setNamedDice(namedDice);
-        r.setType(ThrowCommandExtract::Type::FacedDice);
+
+        // generate named dice throw
+        auto ndt = new NamedDiceThrow(r._bufferHowMany, namedDice);
+        r.push(fdt);
     }
 };
 

@@ -62,6 +62,41 @@ class Resolver {
         return extract;
     }
 
+    std::string reduce(const Dicer::ThrowCommandExtract &extract) {
+        // returns error string if has failed
+        if(extract.hasFailed()) return extract.error();
+
+        // TODO 
+    }
+
+    std::string resolve(GameContext *gContext, PlayerContext* pContext) const {
+        // assert
+        auto rslvblsCount = _resolvables.size();
+        assert( rslvblsCount > 1 );
+        assert( _ops.size() == rslvblsCount - 1  );
+
+        // populate first
+        double result = _resolvables.back()->resolve(gContext, pContext);
+        rslvblsCount--;
+
+        // iterate each others
+        while(rslvblsCount) {
+            auto index = rslvblsCount - 1;
+            auto &opPart = _ops[index];
+            auto &leftResolvable = _resolvables[index];
+
+            // result is right part
+            result = opPart.operate(
+                leftResolvable->resolve(gContext, pContext),
+                result
+            );
+
+            rslvblsCount--;
+        }
+
+        return result;
+    }
+
  private:
     Dicer::GameContext* _gContext = nullptr;
 };

@@ -77,7 +77,7 @@ struct CommandOperators {
 // reduce-step it calls on the functions contained in the op
 // instances to perform the calculation.
 
-class ThrowCommandStack : public IResolvable {
+class ThrowCommandStack {
  public:
     ThrowCommandStack() {}
     ~ThrowCommandStack() {
@@ -96,36 +96,12 @@ class ThrowCommandStack : public IResolvable {
         _resolvables.push_back(rslvbl);
     }
 
-    IResolvable* latest() const {
-        return _resolvables.back();
+    const std::vector< op >& orderedOps() const {
+        return _ops;
     }
 
-    double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        // assert
-        auto rslvblsCount = _resolvables.size();
-        assert( rslvblsCount > 1 );
-        assert( _ops.size() == rslvblsCount - 1  );
-
-        // populate first
-        double result = _resolvables.back()->resolve(gContext, pContext);
-        rslvblsCount--;
-
-        // iterate each others
-        while(rslvblsCount) {
-            auto index = rslvblsCount - 1;
-            auto &opPart = _ops[index];
-            auto &leftResolvable = _resolvables[index];
-
-            // result is right part
-            result = opPart.operate(
-                leftResolvable->resolve(gContext, pContext),
-                result
-            );
-
-            rslvblsCount--;
-        }
-
-        return result;
+    const std::vector< IResolvable* >& orderedResolvables() const {
+        return _resolvables;
     }
 
  private:
