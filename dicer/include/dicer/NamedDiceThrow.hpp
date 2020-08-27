@@ -61,14 +61,20 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
     }
 
     std::string resolvedDescription() const override {
-        auto joinedDescriptor = std::accumulate(
-            _resolved.begin(),
-            _resolved.end(),
-            std::string(),
-            [](const std::string& a, const std::string& b) -> std::string {
-                return a + (a.length() > 0 ? ", " : "") + b;
-            }
-        );
+        std::string joinedDescriptor;
+
+        if(_resolved.size()) {
+            joinedDescriptor = std::accumulate(
+                _resolved.begin(),
+                _resolved.end(),
+                std::string(),
+                [](const std::string& a, const std::string& b) -> std::string {
+                    return a + (a.length() > 0 ? ", " : "") + b;
+                }
+            );
+        } else {
+            joinedDescriptor = "not resolved";
+        }
 
         return toString() + " : {" + joinedDescriptor + "}";
     }

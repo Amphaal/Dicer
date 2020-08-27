@@ -62,18 +62,24 @@ struct CommandOperators {
     CommandOperators() {
         // By default we initialise with all binary operators from the C language that can be
         // used on integers, all with their usual priority.
-        _ops.try_emplace( "*", order( 5 ), []( const double l, const double r ) { return l * r; } );
-        _ops.try_emplace( "/", order( 5 ), []( const double l, const double r ) { return l / r; } );
-        _ops.try_emplace( "+", order( 6 ), []( const double l, const double r ) { return l + r; } );
-        _ops.try_emplace( "-", order( 6 ), []( const double l, const double r ) { return l - r; } );
+        _ops.try_emplace("*", new ResolvableOperation("*", order( 5 ), []( const double l, const double r ) { return l * r; }));
+        _ops.try_emplace( "/", new ResolvableOperation("/", order( 5 ), []( const double l, const double r ) { return l / r; }));
+        _ops.try_emplace( "+", new ResolvableOperation("+", order( 6 ), []( const double l, const double r ) { return l + r; }));
+        _ops.try_emplace( "-", new ResolvableOperation("-", order( 6 ), []( const double l, const double r ) { return l - r; }));
     }
 
-    [[nodiscard]] const std::map<std::string, ResolvableOperation>& ops() const noexcept {
+    ~CommandOperators() {
+        for(auto op : _ops) {
+            delete op.second;
+        }
+    }
+
+    [[nodiscard]] const std::map<std::string, ResolvableOperation*>& ops() const noexcept {
         return _ops;
     }
 
  private:
-    std::map<std::string, ResolvableOperation> _ops;
+    std::map<std::string, ResolvableOperation*> _ops;
 };
 
 }  // namespace Dicer

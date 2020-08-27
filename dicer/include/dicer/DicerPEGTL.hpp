@@ -100,7 +100,7 @@ struct infix {
                     // While we are at it, this rule also performs the task of what would
                     // usually be an associated action: To push the matched operator onto
                     // the operator stack.
-                    r.push( &i->second );
+                    r.push( i->second );
                     in.bump( t.size() );
                     return true;
                 }
@@ -127,7 +127,7 @@ struct bracket
 // An atomic expression, i.e. one without operators, is either a number or
 // a bracketed expression.
 
-struct atomic : sor< number, bracket, dice_throw, macro > {};
+struct atomic : sor< bracket, dice_throw, macro, number > {};
 
 // An expression is a non-empty list of atomic expressions where each pair
 // of atomic expressions is separated by an infix operator and we allow

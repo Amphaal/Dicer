@@ -55,14 +55,20 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
     std::string resolvedDescription() const override {
-        auto joinedDescriptor = std::accumulate(
-            _resolved.begin(),
-            _resolved.end(),
-            std::string(),
-            [](const std::string& a, const DiceFaceResult& b) -> std::string {
-                return a + (a.length() > 0 ? ", " : "") + std::to_string(b);
-            }
-        );
+        std::string joinedDescriptor;
+
+        if(_resolved.size()) {
+            joinedDescriptor = std::accumulate(
+                _resolved.begin(),
+                _resolved.end(),
+                std::string(),
+                [](const std::string& a, const DiceFaceResult& b) -> std::string {
+                    return a + (a.length() > 0 ? ", " : "") + std::to_string(b);
+                }
+            );
+        } else {
+            joinedDescriptor = "not resolved";
+        }
 
         return toString() + " : {" + joinedDescriptor + "}";
     }

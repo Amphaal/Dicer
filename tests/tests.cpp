@@ -75,8 +75,8 @@ TEST_CASE("t", "[]") {
     Dicer::Resolver resolver(&gContext);
 
     // command throw
-    auto result = resolver.parseThrowCommand(&pContext, "3 + 2 + 4");
-    // TODO
+    auto extract = resolver.parseThrowCommand(&pContext, "2d6");
+    std::cout << resolver.resolveDebug(extract) << std::endl;
 }
 
 // TEST_CASE("Must fail", "[Dice]") {

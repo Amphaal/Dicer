@@ -52,10 +52,10 @@ class DiceThrow {
 
         // add repartition from dice face if not already existing
         if(find == occurences.end()) {
-            occurences.emplace(faces, faces);
+            occurences.try_emplace(faces, faces);
         }
 
-        auto &tRepartition = occurences[faces];
+        auto &tRepartition = occurences.find(faces)->second;
 
         // randomise for how many we must throw
         auto howMany = _howMany;

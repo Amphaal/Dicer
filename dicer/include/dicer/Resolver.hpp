@@ -47,7 +47,7 @@ class Resolver {
         };
 
         // extraction
-        Dicer::ThrowCommandExtract extract;
+        Dicer::ThrowCommandExtract extract(pContext);
 
         // parse
         tao::pegtl::memory_input in(command.signature(), "");
@@ -62,8 +62,31 @@ class Resolver {
         return extract;
     }
 
+    std::string resolveDebug(const Dicer::ThrowCommandExtract &extract) {
+        // recursive resolve
+        _resolveStack(&extract.masterStack(), extract.playerContext());
+
+        // get debug text
+        return extract.masterStack().resolvedDescription();
+    }
+
  private:
     Dicer::GameContext* _gContext = nullptr;
+
+    void _resolveStack(const ThrowCommandStack* stack, PlayerContext* pContext) {
+        for(auto iresolvables : stack->orderedResolvables()) {
+            // if stack, recurse
+            auto stack = dynamic_cast<const ThrowCommandStack*>(iresolvables);
+            if(stack) _resolveStack(stack, pContext);
+
+            // if not resolvable, skip
+            auto resolvable = dynamic_cast<ResolvableBase*>(iresolvables);
+            if(!resolvable) continue;
+
+            // resolve
+            resolvable->resolve(_gContext, pContext);
+        }
+    }
 };
 
 }  // namespace Dicer

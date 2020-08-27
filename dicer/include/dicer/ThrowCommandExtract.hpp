@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 
+#include "Throw.hpp"
 #include "ThrowCommandStack.hpp"
 
 namespace Dicer {
@@ -37,7 +38,7 @@ namespace Dicer {
 
 class ThrowCommandExtract {
  public:
-    ThrowCommandExtract() {
+    explicit ThrowCommandExtract(Dicer::PlayerContext* pContext) : _pContext(pContext) {
         _stacks.emplace_back(&_master);
     }
 
@@ -81,15 +82,20 @@ class ThrowCommandExtract {
         return _master;
     }
 
+    PlayerContext * playerContext() const {
+        return _pContext;
+    }
+
     unsigned int _bufferHowMany = 0;
 
  protected:
     std::string _errorString;
+    CommandOperators _operators;  // operators before stack, because of destructors
     ThrowCommandStack _master;
-    CommandOperators _operators;
 
  private:
     std::vector<ThrowCommandStack*> _stacks;
+    Dicer::PlayerContext* _pContext = nullptr;
 };
 
 }  // namespace Dicer

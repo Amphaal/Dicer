@@ -27,11 +27,16 @@
 
 namespace Dicer {
 
+class ResolvableBase : public IResolvable {
+ public:
+    virtual ~ResolvableBase() {}
+    virtual void resolve(GameContext *gContext, PlayerContext* pContext) {}
+};
+
 template<class T>
-class Resolvable : public IResolvable {
+class Resolvable : public ResolvableBase {
  public:
     virtual ~Resolvable() {}
-    virtual void resolve(GameContext *gContext, PlayerContext* pContext) {}
     T resolved() const {
         return _resolved;
     }

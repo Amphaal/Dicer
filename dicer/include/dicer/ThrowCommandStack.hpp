@@ -39,7 +39,8 @@ class ThrowCommandStack : public IResolvable {
     ThrowCommandStack() {}
     ~ThrowCommandStack() {
         for(auto resolvablePtr : _resolvables) {
-            delete resolvablePtr;
+            auto op = dynamic_cast<ResolvableOperation*>(resolvablePtr);
+            if(!op) delete resolvablePtr;
         }
     }
 
@@ -47,18 +48,20 @@ class ThrowCommandStack : public IResolvable {
         _resolvables.push_back(rslvbl);
     }
 
-    const std::vector< IResolvable* >& orderedResolvables() const {
+    const std::vector<IResolvable*>& orderedResolvables() const {
         return _resolvables;
     }
 
     std::string resolvedDescription() const override {
-        // assert
+        // return empty
+        std::string out;
         auto rslvblsCount = _resolvables.size();
-        assert( rslvblsCount > 1 );
+        if(!rslvblsCount) return out;
+
+        // assert
         assert( rslvblsCount % 2 != 0 );
 
         // populate first
-        std::string out;
         for(auto resolvable : _resolvables) {
             out += resolvable->resolvedDescription() + " ";
         }
