@@ -215,17 +215,18 @@ struct action< custom_dice_id > {
 
         // search for associated Named Dice
         auto custom_dice_name = in.string();
-        auto &nd_container = c.gameContext()->namedDices;
-        auto found = nd_container.find(custom_dice_name);
+        auto &namedDices = c.gameContext()->namedDices;
+        auto found = namedDices.find(custom_dice_name);
 
         // should be found
-        if(found == nd_container.end()) {
+        if(found == namedDices.end()) {
             throw std::logic_error("Cannot find associated named dice [" + custom_dice_name + "] in the game context.");
         }
 
         // define
         auto namedDice = &found->second;
         diceThrow->setNamedDice(namedDice);
+        r.setType(ThrowCommandExtract::Type::FacedDice);
     }
 };
 

@@ -52,6 +52,12 @@ class NamedDice {
         return _resultByName.size();
     }
 
+    std::string getFaceName(DiceFaceResult result) const {
+        auto found = _resultByName.find(result);
+        if(found == _resultByName.end()) throw std::logic_error("Could not find associated name to value [" + std::to_string(result) + "] within [" + diceName() + "] dice");
+        return found->second;
+    }
+
  private:
     std::string _diceName;
     std::string _description;

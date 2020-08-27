@@ -21,27 +21,14 @@
 
 #include <vector>
 #include <random>
+#include <string>
 
 #include "Throw.hpp"
 
 namespace Dicer {
 
-class DiceThrow : public IResolvable {
+class DiceThrow : protected IResolvable<std::vector<DiceFaceResult>> {
  public:
-    enum Type {
-        Unknown,
-        Named,
-        Arithmetic
-    };
-
-    enum ResolvingMethod {
-        Aggregate,
-        HighestValue,
-        LowestValue,
-        Multiply,
-        Random
-    };
-
     explicit DiceThrow(unsigned int howMany) {
         _setHowMany(howMany);
     }
@@ -50,42 +37,9 @@ class DiceThrow : public IResolvable {
         return _howMany;
     }
 
-    DiceFace faces() const {
-        switch(_type) {
-            case Type::Named: {
-                return _associatedNamedDice->facesCount();
-            }
-            break;
+    virtual DiceFace faces() const = 0;
 
-            case Type::Arithmetic: {
-                return _faces;
-            }
-            break;
-
-            default: {
-                throw std::logic_error("Dice Throw type must be set");
-            }
-            break;
-        }
-    }
-
-    void setFaces(DiceFace faces) {
-        if (faces <= 1) throw std::logic_error("A dice face must be > 1");
-        _faces = faces;
-        _type = Arithmetic;
-    }
-
-    void setNamedDice(NamedDice* associatedNamedDice) {
-        if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
-        _associatedNamedDice = associatedNamedDice;
-        _type = Named;
-    }
-
-    NamedDice* namedDice() const {
-        return _associatedNamedDice;
-    }
-
-    std::vector<DiceFaceResult> manyResolve(GameContext *gContext, PlayerContext* pContext) const {
+    std::vector<DiceFaceResult> resolve(GameContext *gContext, PlayerContext* pContext) const {
         // try to find a throw repartition
         std::vector<DiceFaceResult> results;
         auto faces = this->faces();
@@ -112,9 +66,90 @@ class DiceThrow : public IResolvable {
         return results;
     }
 
+ protected:
+    // generate a dice throw value from a throws repartition
+    DiceFaceResult _randomise(const ThrowsRepartition &tRepartition) const {
+        auto &wArray = tRepartition.weightedArray();
+
+        std::random_device rd;                                      // obtain a random number from hardware
+        std::mt19937 gen(rd());                                     // seed the generator
+        std::uniform_int_distribution<> distr(1, wArray.size());    // define the range according to weighted array
+
+        return distr(gen);
+    }
+
+ private:
+    unsigned int _howMany = 0;
+
+    void _setHowMany(unsigned int howMany) {
+        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
+        _howMany = howMany;
+    }
+};
+
+class NamedDiceThrow : public DiceThrow, public IResolvable<std::vector<std::string>> {
+ public:
+    explicit NamedDiceThrow(unsigned int howMany, NamedDice* associatedNamedDice) : DiceThrow(howMany) {
+        _setNamedDice(associatedNamedDice);
+    }
+
+    DiceFace faces() const {
+        return _associatedNamedDice->facesCount();
+    }
+
+    NamedDice* namedDice() const {
+        return _associatedNamedDice;
+    }
+
     // throw dice
-    double resolve(GameContext *gContext, PlayerContext* pContext) const {
-        auto mRResults = manyResolve(gContext, pContext);
+    std::vector<std::string> resolve(GameContext *gContext, PlayerContext* pContext) const {
+        // setup search
+        auto mRResults = DiceThrow::resolve(gContext, pContext);
+
+        // find associated dice name
+        std::vector<std::string> out;
+        for(auto &result : mRResults) {
+            auto associatedName = _associatedNamedDice->getFaceName(result);
+            out.push_back(associatedName);
+        }
+
+        return out;
+    }
+
+ private:
+    NamedDice* _associatedNamedDice = nullptr;
+
+     void _setNamedDice(NamedDice* associatedNamedDice) {
+        if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
+        _associatedNamedDice = associatedNamedDice;
+    }
+};
+
+
+class FacedDiceThrow : public DiceThrow {
+ public:
+     enum ResolvingMethod {
+        Aggregate,
+        HighestValue,
+        LowestValue,
+        Multiply,
+        Random
+    };
+
+    explicit FacedDiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {
+        _setFaces(faces);
+    }
+
+    DiceFace faces() const {
+       return _faces;
+    }
+
+    std::vector<DiceFaceResult> resolve(GameContext *gContext, PlayerContext* pContext) const {
+        return DiceThrow::resolve(gContext, pContext);
+    }
+
+    double resolveFromMethod(GameContext *gContext, PlayerContext* pContext) const {
+        auto mRResults = resolve(gContext, pContext);
 
         // what to do with results
         switch(_rm) {
@@ -133,27 +168,13 @@ class DiceThrow : public IResolvable {
     }
 
  private:
-    void _setHowMany(unsigned int howMany) {
-        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
-        _howMany = howMany;
-    }
-
-    // generate a dice throw value from a throws repartition
-    DiceFaceResult _randomise(const ThrowsRepartition &tRepartition) const {
-        auto &wArray = tRepartition.weightedArray();
-
-        std::random_device rd;                                      // obtain a random number from hardware
-        std::mt19937 gen(rd());                                     // seed the generator
-        std::uniform_int_distribution<> distr(1, wArray.size());    // define the range according to weighted array
-
-        return distr(gen);
-    }
-
-    Type _type = Unknown;
-    ResolvingMethod _rm = Aggregate;
-    unsigned int _howMany = 0;
     DiceFace _faces = 0;
-    NamedDice* _associatedNamedDice = nullptr;
+    ResolvingMethod _rm = Aggregate;
+
+    void _setFaces(DiceFace faces) {
+        if (faces <= 1) throw std::logic_error("A dice face must be > 1");
+        _faces = faces;
+    }
 };
 
 }  // namespace Dicer

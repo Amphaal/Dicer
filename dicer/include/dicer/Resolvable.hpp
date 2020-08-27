@@ -25,18 +25,19 @@
 
 namespace Dicer {
 
+template<class T>
 class IResolvable {
  public:
     virtual ~IResolvable() {}
-    virtual double resolve(GameContext *gContext, PlayerContext* pContext) const = 0;
+    virtual T resolve(GameContext *gContext, PlayerContext* pContext) const = 0;
 };
 
-class Resolvable : public IResolvable {
+class Resolvable : public IResolvable<double> {
  public:
     explicit Resolvable(double result) : _result(result) {}
     ~Resolvable() {}
 
-    virtual double resolve(GameContext *gContext, PlayerContext* pContext) const {
+    double resolve(GameContext *gContext, PlayerContext* pContext) const {
         return _result;
     }
 
@@ -44,7 +45,7 @@ class Resolvable : public IResolvable {
     double _result = 0;
 };
 
-class Stat : public IResolvable {
+class Stat : public IResolvable<double> {
  public:
     explicit Stat(const std::string &statName) : _statName(statName) {}
     ~Stat() {}
