@@ -19,44 +19,24 @@
 
 #pragma once
 
+#include <map>
 #include <string>
 
-#include "Contexts.hpp"
+#include "_Base.hpp"
+#include "NamedDice.hpp"
+#include "ThrowRepartition.hpp"
 
 namespace Dicer {
 
-class ThrowCommand {
+class GameContext {
  public:
-    ThrowCommand(GameContext* gContext, PlayerContext* pContext, std::string signature) : _gContext(gContext), _pContext(pContext) {
-        if(!gContext) throw std::logic_error("Empty game context provided to throw command");
-        if(!pContext) throw std::logic_error("Empty player context provided to throw command");
+    std::map<std::string, NamedDice> namedDices;
+};
 
-        // trim signature from spaces
-        signature.erase(
-            std::remove_if(signature.begin(), signature.end(), ::isspace),
-            signature.end()
-        );
-
-        // assign
-        _signature = signature;
-    }
-
-    std::string& signature() {
-        return _signature;
-    }
-
-    GameContext* gameContext() {
-        return _gContext;
-    }
-
-    PlayerContext* playerContext() {
-        return _pContext;
-    }
-
- private:
-    GameContext* _gContext = nullptr;
-    PlayerContext* _pContext = nullptr;
-    std::string _signature;
+class PlayerContext {
+ public:
+    std::map<DiceFace, ThrowsRepartition> occurences;
+    std::map<std::string, double> statsValues;
 };
 
 }  // namespace Dicer

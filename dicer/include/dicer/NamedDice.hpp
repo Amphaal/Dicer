@@ -21,15 +21,11 @@
 
 #include <string>
 #include <map>
-#include <vector>
-#include <algorithm>
-#include <cctype>
-#include <locale>
+#include <stdexcept>
+
+#include "_Base.hpp"
 
 namespace Dicer {
-
-using DiceFace = unsigned int;
-using DiceFaceResult = unsigned int;
 
 class NamedDice {
  public:
@@ -62,65 +58,6 @@ class NamedDice {
     std::string _diceName;
     std::string _description;
     std::map<DiceFaceResult, std::string> _resultByName;
-};
-
-class ThrowsRepartition {
- public:
-    explicit ThrowsRepartition(DiceFace df) : _repartitionOf(df) {
-        _generateDefaultWeightedArray();
-    }
-
-    // added result weight is reduced by half but cannot be < 1, others are incremented by 1 until they reach their default weight
-    void addResult(DiceFaceResult result) {
-        _throwsHistory.emplace_back(result);
-
-        // calculate new weight
-        auto resultWeight = _weightedArray[result];
-        resultWeight = (unsigned int)std::round( .5 * resultWeight);
-
-        // replace it
-        _weightedArray[result] = resultWeight;
-
-        // try to increment every other
-        for(DiceFaceResult i = 1; i <= _repartitionOf; i++) {
-            // skip added result
-            if (i == result) continue;
-
-            auto &weight = _weightedArray[i];
-
-            // skip if already at maximum and default state
-            if (weight == _repartitionOf) continue;
-
-            weight++;
-        }
-    }
-
-    const std::map<DiceFaceResult, unsigned int>& weightedArray() const {
-        return _weightedArray;
-    }
-
- private:
-    DiceFace _repartitionOf = 0;
-    std::map<DiceFaceResult, unsigned int> _weightedArray;
-    std::vector<DiceFaceResult> _throwsHistory;
-
-    // a face is as strong as the face value by default
-    void _generateDefaultWeightedArray() {
-        for(DiceFaceResult i = 1; i <= _repartitionOf; i++) {
-            _weightedArray[i] = _repartitionOf;
-        }
-    }
-};
-
-class GameContext {
- public:
-    std::map<std::string, NamedDice> namedDices;
-};
-
-class PlayerContext {
- public:
-    std::map<DiceFace, ThrowsRepartition> occurences;
-    std::map<std::string, double> statsValues;
 };
 
 }  // namespace Dicer

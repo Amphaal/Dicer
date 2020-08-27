@@ -15,7 +15,7 @@ target_include_directories(dicer
 
 target_sources(dicer PRIVATE
     include/dicer/DicerPEGTL.hpp
-    include/dicer/Throw.hpp
+    include/dicer/_Base.hpp
     include/dicer/DiceThrow.hpp
     include/dicer/FacedDiceThrow.hpp
     include/dicer/NamedDiceThrow.hpp
@@ -25,4 +25,7 @@ target_sources(dicer PRIVATE
     include/dicer/IResolvable.hpp
     include/dicer/Resolvable.hpp
     include/dicer/Resolver.hpp
+    include/dicer/ThrowRepartition.hpp
+    include/dicer/NamedDice.hpp
+    include/dicer/Contexts.hpp
 )

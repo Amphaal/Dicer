@@ -23,7 +23,7 @@
 #include <random>
 #include <string>
 
-#include "Throw.hpp"
+#include "_Base.hpp"
 
 namespace Dicer {
 
@@ -60,8 +60,8 @@ class DiceThrow {
         // randomise for how many we must throw
         auto howMany = _howMany;
         while(howMany) {
-            auto result = _randomise(tRepartition);
-            tRepartition.addResult(result);  // update throw repartition with result
+            auto wsr = _randomise(tRepartition);
+            auto result = tRepartition.incorporate(wsr);  // update throw repartition with result
             results.push_back(result);
             howMany--;
         }
@@ -70,15 +70,17 @@ class DiceThrow {
         return results;
     }
 
-    // generate a dice throw value from a throws repartition
-    DiceFaceResult _randomise(const ThrowsRepartition &tRepartition) const {
-        auto &wArray = tRepartition.weightedArray();
+    // generate a weighted dice throw result
+    WeightedSeedResult _randomise(const ThrowsRepartition &tRepartition) const {
+        auto maxRand = tRepartition.weightCount();
 
         std::random_device rd;                                      // obtain a random number from hardware
         std::mt19937 gen(rd());                                     // seed the generator
-        std::uniform_int_distribution<> distr(1, wArray.size());    // define the range according to weighted array
+        std::uniform_int_distribution<> distr(1, maxRand);    // define the range according to weighted array
 
-        return distr(gen);
+        WeightedSeedResult wsr;
+        wsr._v = distr(gen);
+        return wsr;
     }
 
  private:

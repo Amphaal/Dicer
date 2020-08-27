@@ -75,7 +75,7 @@ TEST_CASE("t", "[]") {
     Dicer::Resolver resolver(&gContext);
 
     // command throw
-    auto extract = resolver.parseThrowCommand(&pContext, "7d6+");
+    auto extract = resolver.parseThrowCommand(&pContext, "10d6+");
     std::cout << resolver.resolveDebug(extract) << std::endl;
 }
 

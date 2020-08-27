@@ -21,8 +21,9 @@
 
 #include <string>
 #include <map>
+#include <functional>
 
-#include "Throw.hpp"
+#include "_Base.hpp"
 
 namespace Dicer {
 
