@@ -25,6 +25,7 @@
 
 #include "Throw.hpp"
 #include "ThrowCommandStack.hpp"
+#include "FacedDiceThrow.hpp"
 
 namespace Dicer {
 
@@ -86,6 +87,14 @@ class ThrowCommandExtract {
         return _pContext;
     }
 
+    //
+    FacedDiceThrow* latestFDT() const {
+        auto iresolvable = masterStack().orderedResolvables().back();
+        auto fdt = dynamic_cast<FacedDiceThrow*>(iresolvable);
+        assert(fdt);
+
+        return fdt;
+    }
     unsigned int _bufferHowMany = 0;
 
  protected:

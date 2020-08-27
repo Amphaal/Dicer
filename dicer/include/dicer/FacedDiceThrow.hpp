@@ -22,6 +22,7 @@
 #include <vector>
 #include <random>
 #include <string>
+#include <algorithm>
 
 #include "Resolvable.hpp"
 #include "DiceThrow.hpp"
@@ -31,11 +32,12 @@ namespace Dicer {
 class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
      enum ResolvingMethod {
+        DoNotResolve,
         Aggregate,
         HighestValue,
         LowestValue,
-        Multiply,
-        Random
+        // Multiply,
+        // Random
     };
 
     explicit FacedDiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {
@@ -73,15 +75,31 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
         return toString() + " : {" + joinedDescriptor + "}";
     }
 
-    double resolvedFromMethod() const {
-        // what to do with results
+    void setResolvingMethod(ResolvingMethod method) {
+        _rm = method;
+    }
+
+    DiceFaceResult resolvedFromMethod() const {
         switch(_rm) {
             case ResolvingMethod::Aggregate : {
                 return std::accumulate(_resolved.begin(), _resolved.end(), 0);
             }
             break;
 
-            // TODO(amphaal) implement ResolvingMethod switch
+            case ResolvingMethod::HighestValue : {
+                return *std::max_element(_resolved.begin(), _resolved.end());
+            }
+            break;
+
+            case ResolvingMethod::LowestValue : {
+                return *std::min_element(_resolved.begin(), _resolved.end());
+            }
+            break;
+
+            case ResolvingMethod::DoNotResolve : {
+                throw std::logic_error("Dice throw should not resolve");
+            }
+            break;
 
             default : {
                 throw std::logic_error("Unimplemented resolving method for dice throw");
@@ -92,7 +110,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
 
  private:
     DiceFace _faces = 0;
-    ResolvingMethod _rm = Aggregate;
+    ResolvingMethod _rm = DoNotResolve;
 
     void _setFaces(DiceFace faces) {
         if (faces <= 1) throw std::logic_error("A dice face must be > 1");

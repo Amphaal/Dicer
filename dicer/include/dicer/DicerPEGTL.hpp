@@ -46,12 +46,17 @@ namespace PEGTL {
 // Here the actual grammar starts.
 using namespace tao::pegtl;
 
+    struct rm_aggregate : one< '+' > {};
+    struct rm_lowest_value : string<'m', 'i', 'n'> {};
+    struct rm_highest_value : string<'m', 'a', 'x'> {};
+struct resolving_method : opt< sor<rm_aggregate, rm_lowest_value, rm_highest_value> > {};
+
     struct custom_dice_id : plus< alpha > {};
     struct dice_faces : plus< digit > {};
     struct df_or_cd : sor<dice_faces, custom_dice_id> {};
     struct dice_separator : one< 'd', 'D' > {};
     struct how_many : plus< digit > {};
-struct dice_throw : must< how_many, dice_separator, df_or_cd> {};
+struct dice_throw : must< how_many, dice_separator, df_or_cd, resolving_method> {};
 struct macro : plus< alpha > {};
 
 // The calculator ignores all spaces and comments; space is a pegtl rule
@@ -233,6 +238,30 @@ struct action< custom_dice_id > {
         // generate named dice throw
         auto ndt = new NamedDiceThrow(r._bufferHowMany, namedDice);
         r.push(ndt);
+    }
+};
+
+template<>
+struct action< rm_aggregate > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+        r.latestFDT()->setResolvingMethod(FacedDiceThrow::ResolvingMethod::Aggregate);
+    }
+};
+
+template<>
+struct action< rm_lowest_value > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+        r.latestFDT()->setResolvingMethod(FacedDiceThrow::ResolvingMethod::LowestValue);
+    }
+};
+
+template<>
+struct action< rm_highest_value > {
+    template< typename ActionInput >
+    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+        r.latestFDT()->setResolvingMethod(FacedDiceThrow::ResolvingMethod::HighestValue);
     }
 };
 
