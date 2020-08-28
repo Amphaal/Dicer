@@ -44,7 +44,7 @@ class NamedDice {
         return _description;
     }
 
-    DiceFace facesCount() {
+    DiceFace facesCount() const {
         return _resultByName.size();
     }
 

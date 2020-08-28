@@ -30,7 +30,7 @@ namespace Dicer {
 
 class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::string>> {
  public:
-    explicit NamedDiceThrow(unsigned int howMany, NamedDice* associatedNamedDice) : DiceThrow(howMany) {
+    explicit NamedDiceThrow(unsigned int howMany, const NamedDice* associatedNamedDice) : DiceThrow(howMany) {
         _setNamedDice(associatedNamedDice);
     }
 
@@ -38,7 +38,7 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
         return _associatedNamedDice->facesCount();
     }
 
-    NamedDice* namedDice() const {
+    const NamedDice* namedDice() const {
         return _associatedNamedDice;
     }
 
@@ -80,9 +80,9 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
     }
 
  private:
-    NamedDice* _associatedNamedDice = nullptr;
+    const NamedDice* _associatedNamedDice = nullptr;
 
-    void _setNamedDice(NamedDice* associatedNamedDice) {
+    void _setNamedDice(const NamedDice* associatedNamedDice) {
         if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
         _associatedNamedDice = associatedNamedDice;
     }

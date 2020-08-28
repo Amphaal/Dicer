@@ -23,7 +23,6 @@
 #include <vector>
 #include <map>
 
-#include "Contexts.hpp"
 #include "ThrowCommandStack.hpp"
 #include "FacedDiceThrow.hpp"
 
@@ -39,7 +38,7 @@ namespace Dicer {
 
 class ThrowCommandExtract {
  public:
-    explicit ThrowCommandExtract(Dicer::PlayerContext* pContext) : _pContext(pContext) {
+    ThrowCommandExtract() {
         _stacks.emplace_back(&_master);
     }
 
@@ -83,10 +82,6 @@ class ThrowCommandExtract {
         return _master;
     }
 
-    PlayerContext * playerContext() const {
-        return _pContext;
-    }
-
     //
     FacedDiceThrow* latestFDT() const {
         auto iresolvable = masterStack().orderedResolvables().back();
@@ -103,8 +98,8 @@ class ThrowCommandExtract {
     ThrowCommandStack _master;
 
  private:
+    // TODO(amphaal) include string_view resolvable tracker
     std::vector<ThrowCommandStack*> _stacks;
-    Dicer::PlayerContext* _pContext = nullptr;
 };
 
 }  // namespace Dicer

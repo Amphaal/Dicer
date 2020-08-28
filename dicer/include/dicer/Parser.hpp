@@ -30,34 +30,30 @@
 
 namespace Dicer {
 
-class Resolver {
+class Parser {
  public:
-    explicit Resolver(Dicer::GameContext* gContext) : _gContext(gContext) {
-        if(!_gContext) throw std::logic_error("Empty game context given as arguement for command parser!");
-    }
+    static Dicer::ThrowCommandExtract parseThrowCommand(const Dicer::GameContext* gContext, const Dicer::PlayerContext* pContext, const std::string &textCommand) {
+        // throw command
+        Dicer::ThrowCommand command {
+            gContext,
+            pContext,
+            textCommand
+        };
 
-    std::string resolveDebug(const Dicer::ThrowCommandExtract &extract) const {
-        // recursive resolve
-        _resolveStack(&extract.masterStack(), extract.playerContext());
+        // extraction
+        Dicer::ThrowCommandExtract extract;
 
-        // get debug text
-        return extract.masterStack().resolvedDescription();
-    }
-
- private:
-    void _resolveStack(const ThrowCommandStack* stack, PlayerContext* pContext) const {
-        for(auto iresolvables : stack->orderedResolvables()) {
-            // if stack, recurse
-            auto stack = dynamic_cast<const ThrowCommandStack*>(iresolvables);
-            if(stack) _resolveStack(stack, pContext);
-
-            // if not resolvable, skip
-            auto resolvable = dynamic_cast<ResolvableBase*>(iresolvables);
-            if(!resolvable) continue;
-
-            // resolve
-            resolvable->resolve(_gContext, pContext);
+        // parse
+        tao::pegtl::memory_input in(command.signature(), "");
+        try {
+            pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, extract);
+        } catch (const std::logic_error &e) {
+            extract.setError(e.what());
+        } catch (...) {
+            extract.setError("Unhandled error");
         }
+
+        return extract;
     }
 };
 

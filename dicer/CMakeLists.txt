@@ -25,6 +25,7 @@ target_sources(dicer PRIVATE
     include/dicer/IResolvable.hpp
     include/dicer/Resolvable.hpp
     include/dicer/Resolver.hpp
+    include/dicer/Parser.hpp
     include/dicer/ThrowRepartition.hpp
     include/dicer/NamedDice.hpp
     include/dicer/Contexts.hpp

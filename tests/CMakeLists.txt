@@ -1,6 +1,10 @@
 #add tests
 add_subdirectory(Catch2)
-add_executable(dicer_tests tests.cpp)
+add_executable(dicer_tests 
+    tests.cpp
+    specialized/TestParser.hpp
+)
+
 target_link_libraries(dicer_tests
     dicer
     Catch2::Catch2

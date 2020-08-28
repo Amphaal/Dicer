@@ -27,7 +27,7 @@ namespace Dicer {
 
 class ThrowCommand {
  public:
-    ThrowCommand(GameContext* gContext, PlayerContext* pContext, std::string signature) : _gContext(gContext), _pContext(pContext) {
+    ThrowCommand(const GameContext* gContext, const PlayerContext* pContext, std::string signature) : _gContext(gContext), _pContext(pContext) {
         if(!gContext) throw std::logic_error("Empty game context provided to throw command");
         if(!pContext) throw std::logic_error("Empty player context provided to throw command");
 
@@ -41,21 +41,21 @@ class ThrowCommand {
         _signature = signature;
     }
 
-    std::string& signature() {
+    const std::string& signature() const {
         return _signature;
     }
 
-    GameContext* gameContext() {
+    const GameContext* gameContext() const {
         return _gContext;
     }
 
-    PlayerContext* playerContext() {
+    const PlayerContext* playerContext() const {
         return _pContext;
     }
 
  private:
-    GameContext* _gContext = nullptr;
-    PlayerContext* _pContext = nullptr;
+    const GameContext* _gContext = nullptr;
+    const PlayerContext* _pContext = nullptr;
     std::string _signature;
 };
 

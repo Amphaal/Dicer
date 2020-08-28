@@ -17,22 +17,28 @@
 // for further details. Graphical resources without explicit references to a
 // different license and copyright still refer to this GPL.
 
-#define CATCH_CONFIG_MAIN
+#pragma once
 
-#include <catch2/catch.hpp>
+#include <string>
 
-#include "dicer/DicerPEGTL.hpp"
-#include "specialized/TestParser.hpp"
+#include "dicer/Parser.hpp"
 
-TEST_CASE("Must fail tests - how many parts", "[Parser]") {
-    // command throw
-    REQUIRE(TestParser::parse("0d6").hasFailed());
-    REQUIRE(TestParser::parse("1d1").hasFailed());
-    REQUIRE(TestParser::parse("-1d4").hasFailed());
-    REQUIRE(TestParser::parse("1D0").hasFailed());
-    REQUIRE(TestParser::parse("1D-7").hasFailed());
-    REQUIRE(TestParser::parse("3d").hasFailed());
-    REQUIRE(TestParser::parse("D4").hasFailed());
-    REQUIRE(TestParser::parse("").hasFailed());
-    REQUIRE(TestParser::parse("  ").hasFailed());
-}
+// utility to shorten tests cases
+class TestParser {
+ public:
+    static Dicer::ThrowCommandExtract parse(const std::string &command) {
+        return Dicer::Parser::parseThrowCommand(&_gContext, &_pContext, command);
+    }
+
+    static Dicer::GameContext gameContext() {
+        return _gContext;
+    }
+
+    static Dicer::PlayerContext playerContext() {
+        return _pContext;
+    }
+
+ private:
+    static inline Dicer::GameContext _gContext;
+    static inline Dicer::PlayerContext _pContext;
+};
