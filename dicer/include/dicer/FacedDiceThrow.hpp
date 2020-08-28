@@ -31,7 +31,7 @@ namespace Dicer {
 
 class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
-     enum ResolvingMethod {
+     enum GroupingMethod {
         DoNotResolve,
         Aggregate,
         HighestValue,
@@ -50,6 +50,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
 
     void resolve(GameContext *gContext, PlayerContext* pContext) override {
         _resolved = DiceThrow::_resolve(pContext);
+        _MightDefineGroupedResolved();
     }
 
     std::string toString() const override {
@@ -72,32 +73,68 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
             joinedDescriptor = "not resolved";
         }
 
-        return toString() + " : {" + joinedDescriptor + "}";
+        return toString() + "{" + joinedDescriptor + "}" + _groupedResolvedDescription();
     }
 
-    void setResolvingMethod(ResolvingMethod method) {
+    void setResolvingMethod(GroupingMethod method) {
         _rm = method;
     }
 
-    DiceFaceResult resolvedFromMethod() const {
+ private:
+    DiceFace _faces = 0;
+    unsigned int _groupedResolved = 0;
+    GroupingMethod _rm = DoNotResolve;
+
+    void _setFaces(DiceFace faces) {
+        if (faces <= 1) throw std::logic_error("A dice face must be > 1");
+        _faces = faces;
+    }
+
+    void _MightDefineGroupedResolved() {
         switch(_rm) {
-            case ResolvingMethod::Aggregate : {
-                return std::accumulate(_resolved.begin(), _resolved.end(), 0);
+            case GroupingMethod::Aggregate : {
+                _groupedResolved = std::accumulate(_resolved.begin(), _resolved.end(), 0);
             }
             break;
 
-            case ResolvingMethod::HighestValue : {
-                return *std::max_element(_resolved.begin(), _resolved.end());
+            case GroupingMethod::HighestValue : {
+                _groupedResolved = *std::max_element(_resolved.begin(), _resolved.end());
             }
             break;
 
-            case ResolvingMethod::LowestValue : {
-                return *std::min_element(_resolved.begin(), _resolved.end());
+            case GroupingMethod::LowestValue : {
+                _groupedResolved = *std::min_element(_resolved.begin(), _resolved.end());
             }
             break;
 
-            case ResolvingMethod::DoNotResolve : {
-                throw std::logic_error("Dice throw should not resolve");
+            default : {
+                // do not set _groupedResolved
+            }
+            break;
+        }
+    }
+
+    std::string _groupedResolvedDescription() const {
+        std::string descr;
+
+        switch(_rm) {
+            case GroupingMethod::Aggregate : {
+                descr = "+(";
+            }
+            break;
+
+            case GroupingMethod::HighestValue : {
+                descr = "max(";
+            }
+            break;
+
+            case GroupingMethod::LowestValue : {
+                descr = "min(";
+            }
+            break;
+
+            case GroupingMethod::DoNotResolve : {
+                return descr;
             }
             break;
 
@@ -106,15 +143,9 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
             }
             break;
         }
-    }
 
- private:
-    DiceFace _faces = 0;
-    ResolvingMethod _rm = DoNotResolve;
-
-    void _setFaces(DiceFace faces) {
-        if (faces <= 1) throw std::logic_error("A dice face must be > 1");
-        _faces = faces;
+        descr += std::to_string(_groupedResolved) + ")";
+        return descr;
     }
 };
 

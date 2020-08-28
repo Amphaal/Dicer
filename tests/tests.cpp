@@ -71,11 +71,23 @@ TEST_CASE("t", "[]") {
     Dicer::PlayerContext pContext;
     Dicer::GameContext gContext;
 
+    // named dice
+    Dicer::NamedDice nd {
+        "Force",
+        "Force dice",
+        {
+            { 1, "Weak" },
+            { 2, "Strong" },
+            { 3, "Unpredictable" }
+        }
+    };
+    gContext.namedDices.emplace(nd.diceName(), nd);
+
     // resolver
     Dicer::Resolver resolver(&gContext);
 
     // command throw
-    auto extract = resolver.parseThrowCommand(&pContext, "10d6+");
+    auto extract = resolver.parseThrowCommand(&pContext, "10dForce");
     std::cout << resolver.resolveDebug(extract) << std::endl;
 }
 

@@ -76,7 +76,7 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
             joinedDescriptor = "not resolved";
         }
 
-        return toString() + " : {" + joinedDescriptor + "}";
+        return toString() + "{" + joinedDescriptor + "}";
     }
 
  private:

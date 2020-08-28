@@ -159,7 +159,7 @@ template<>
 struct action< macro > {
     template< typename ActionInput >
     static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        // TODO(amphaal)
+        // TODO(amphaal) macro calls and nested, check for non recursiveness
         throw std::logic_error("Unimplemented macro functionality");
     }
 };
@@ -245,7 +245,7 @@ template<>
 struct action< rm_aggregate > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        r.latestFDT()->setResolvingMethod(FacedDiceThrow::ResolvingMethod::Aggregate);
+        r.latestFDT()->setResolvingMethod(FacedDiceThrow::GroupingMethod::Aggregate);
     }
 };
 
@@ -253,7 +253,7 @@ template<>
 struct action< rm_lowest_value > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        r.latestFDT()->setResolvingMethod(FacedDiceThrow::ResolvingMethod::LowestValue);
+        r.latestFDT()->setResolvingMethod(FacedDiceThrow::GroupingMethod::LowestValue);
     }
 };
 
@@ -261,7 +261,7 @@ template<>
 struct action< rm_highest_value > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        r.latestFDT()->setResolvingMethod(FacedDiceThrow::ResolvingMethod::HighestValue);
+        r.latestFDT()->setResolvingMethod(FacedDiceThrow::GroupingMethod::HighestValue);
     }
 };
 
