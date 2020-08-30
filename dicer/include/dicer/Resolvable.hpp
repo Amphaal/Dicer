@@ -21,6 +21,7 @@
 
 #include <string>
 #include <map>
+#include <cstring>
 
 #include "IDescriptible.hpp"
 #include "Contexts.hpp"
@@ -44,8 +45,19 @@ class ResolvableBase : public IDescriptible {
         return _resolvedSingleValue;
     }
 
+    static std::string strResolved(double val) {
+        char buffer[32];
+        memset(buffer, 0, sizeof(buffer));
+        snprintf(buffer, sizeof(buffer), "%g", val);
+        return buffer;
+    }
+
  protected:
     double _resolvedSingleValue = 0;
+
+    std::string _strResolvedSingleValue() const {
+        return strResolved(_resolvedSingleValue);
+    }
 
  private:
     bool _beenResolved = false;
@@ -71,7 +83,7 @@ class ResolvableNumber : public ResolvableBase {
     ~ResolvableNumber() {}
 
     std::string description() const override {
-        return std::to_string(_resolvedSingleValue);
+        return _strResolvedSingleValue();
     }
 
     bool isSingleValueResolvable() const override {
@@ -98,7 +110,7 @@ class ResolvableStat : public ResolvableBase {
     }
 
     std::string description() const override {
-        return _statName + "(" +  std::to_string(_resolvedSingleValue) + ")";
+        return _statName + "(" +  _strResolvedSingleValue() + ")";
     }
 
     bool isSingleValueResolvable() const override {

@@ -35,7 +35,15 @@ class Resolver {
         _resolveStack(gContext, pContext, &extract._master);
 
         // get debug text
-        return extract._master.description();
+        auto descr = extract._master.description();
+
+        // if single value resolvable try to get it
+        if(extract._master.isSingleValueResolvable()) {
+            auto sv = _tryComputeIntoSingleValue(gContext, pContext, extract._master);
+            descr += " => " + ResolvableBase::strResolved(sv);
+        }
+
+        return descr;
     }
 
  private:
@@ -54,12 +62,7 @@ class Resolver {
         }
     }
 
-    double _tryComputeIntoSingleValue(GameContext *gContext, PlayerContext* pContext, const Dicer::ThrowCommandExtract &extract) const {
-        assert(extract._master.isSingleValueResolvable());
-        return _tryComputeIntoSingleValue(gContext, pContext, extract._master);
-    }
-
-    double _tryComputeIntoSingleValue(GameContext *gContext, PlayerContext* pContext, const Dicer::ThrowCommandStack &stack) const {
+    static double _tryComputeIntoSingleValue(GameContext *gContext, PlayerContext* pContext, const Dicer::ThrowCommandStack &stack) {
         // assert
         auto &resolvables = stack._components;
         auto rslvblsCount = resolvables.size();
@@ -83,7 +86,7 @@ class Resolver {
                 assert(op);
 
                 // try to get mot recent results
-                auto findResolvedSingleValue = [=](int index) -> double {
+                auto findResolvedSingleValue = [&bufferResults, &stack](int index) -> double {
                     // find in buffer...
                     auto foundInBuffer = bufferResults.find(index);
                     if(foundInBuffer != bufferResults.end()) return foundInBuffer->second;

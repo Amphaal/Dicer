@@ -84,7 +84,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
             joinedDescriptor = "not resolved";
         }
 
-        return toString() + "{" + joinedDescriptor + "}" + _groupeddescription();
+        return toString() + "{" + joinedDescriptor + "}" + _groupedDescription();
     }
 
     void setResolvingMethod(GroupingMethod method) {
@@ -132,7 +132,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
         }
     }
 
-    std::string _groupeddescription() const {
+    std::string _groupedDescription() const {
         std::string descr;
 
         switch(_rm) {
@@ -162,7 +162,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
             break;
         }
 
-        descr += std::to_string(_resolvedSingleValue) + ")";
+        descr += _strResolvedSingleValue() + ")";
         return descr;
     }
 };
