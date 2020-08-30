@@ -29,6 +29,8 @@
 
 namespace Dicer {
 
+// TODO() ability to compute dice face
+
 class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
      enum GroupingMethod {
@@ -36,8 +38,9 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
         Aggregate,
         HighestValue,
         LowestValue,
-        // Multiply,
-        // Random
+        // Ceiled                      // TODO(stagiaire)
+        // HighestValueAddsOneMore     // TODO(stagiaire)
+        // LowestValueSubstractOneMore // TODO(stagiaire)
     };
 
     explicit FacedDiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {

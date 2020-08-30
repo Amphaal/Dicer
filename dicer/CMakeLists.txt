@@ -14,7 +14,8 @@ target_include_directories(dicer
 )
 
 target_sources(dicer PRIVATE
-    include/dicer/DicerPEGTL.hpp
+    include/dicer/PEGTL/Actions.hpp
+    include/dicer/PEGTL/Grammar.hpp
     include/dicer/_Base.hpp
     include/dicer/DiceThrow.hpp
     include/dicer/FacedDiceThrow.hpp

@@ -67,6 +67,8 @@ struct CommandOperators {
         _ops.try_emplace( "/", new ResolvableOperation("/", order( 5 ), []( const double l, const double r ) { return l / r; }));
         _ops.try_emplace( "+", new ResolvableOperation("+", order( 6 ), []( const double l, const double r ) { return l + r; }));
         _ops.try_emplace( "-", new ResolvableOperation("-", order( 6 ), []( const double l, const double r ) { return l - r; }));
+        _ops.try_emplace( ">", new ResolvableOperation("+", order( 7 ), []( const double l, const double r ) { return l > r; }));
+        _ops.try_emplace( "<", new ResolvableOperation("-", order( 7 ), []( const double l, const double r ) { return l < r; }));
     }
 
     ~CommandOperators() {

@@ -19,15 +19,5 @@
 
 #pragma once
 
-// TODO(amphaal) typed execeptions instead of logic_error for tests
-
-namespace Dicer {
-
-using DiceFace = unsigned int;
-using DiceFaceResult = unsigned int;
-
-struct WeightedSeedResult {
-    unsigned int _v;
-};
-
-}  // namespace Dicer
+#include "./Grammar.hpp"
+#include "./Actions.hpp"

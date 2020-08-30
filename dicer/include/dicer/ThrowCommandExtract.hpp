@@ -74,8 +74,8 @@ class ThrowCommandExtract {
         return _errorString.size();
     }
 
-    std::string error() const {
-        return _errorString;
+    const char * error() const {
+        return _errorString.empty() ? nullptr : _errorString.c_str();
     }
 
     const ThrowCommandStack& masterStack() const {

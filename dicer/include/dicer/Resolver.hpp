@@ -26,9 +26,11 @@
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/analyze.hpp>
 
-#include "DicerPEGTL.hpp"
+#include "PEGTL/_.hpp"
 
 namespace Dicer {
+
+// TODO(amphaal) compute singular value
 
 class Resolver {
  public:
@@ -59,6 +61,34 @@ class Resolver {
             resolvable->resolve(_gContext, pContext);
         }
     }
+
+    // double resolve(GameContext *gContext, PlayerContext* pContext) const {	
+    //     // assert	
+    //     auto rslvblsCount = _resolvables.size();	
+    //     assert( rslvblsCount > 1 );	
+    //     assert( _ops.size() == rslvblsCount - 1  );	
+
+    //     // populate first	
+    //     double result = _resolvables.back()->resolve(gContext, pContext);	
+    //     rslvblsCount--;	
+
+    //     // iterate each others	
+    //     while(rslvblsCount) {	
+    //         auto index = rslvblsCount - 1;	
+    //         auto &opPart = _ops[index];	
+    //         auto &leftResolvable = _resolvables[index];	
+
+    //         // result is right part	
+    //         result = opPart.operate(	
+    //             leftResolvable->resolve(gContext, pContext),	
+    //             result	
+    //         );	
+
+    //         rslvblsCount--;	
+    //     }	
+
+    //     return result;	
+    // }
 };
 
 }  // namespace Dicer

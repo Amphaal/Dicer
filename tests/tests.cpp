@@ -21,18 +21,33 @@
 
 #include <catch2/catch.hpp>
 
-#include "dicer/DicerPEGTL.hpp"
+#include "dicer/PEGTL/_.hpp"
 #include "specialized/TestParser.hpp"
 
-TEST_CASE("Must fail tests - how many parts", "[Parser]") {
-    // command throw
-    REQUIRE(TestParser::parse("0d6").hasFailed());
-    REQUIRE(TestParser::parse("1d1").hasFailed());
-    REQUIRE(TestParser::parse("-1d4").hasFailed());
-    REQUIRE(TestParser::parse("1D0").hasFailed());
-    REQUIRE(TestParser::parse("1D-7").hasFailed());
-    REQUIRE(TestParser::parse("3d").hasFailed());
-    REQUIRE(TestParser::parse("D4").hasFailed());
-    REQUIRE(TestParser::parse("").hasFailed());
-    REQUIRE(TestParser::parse("  ").hasFailed());
+// TEST_CASE("Must fail tests - how many parts", "[Parser]") {
+//     // command throw
+//     REQUIRE(TestParser::parse("0d6").hasFailed());
+//     REQUIRE(TestParser::parse("1d1").hasFailed());
+//     REQUIRE(TestParser::parse("-1d4").hasFailed());
+//     REQUIRE(TestParser::parse("1D0").hasFailed());
+//     REQUIRE(TestParser::parse("1D-7").hasFailed());
+//     REQUIRE(TestParser::parse("3d").hasFailed());
+//     REQUIRE(TestParser::parse("D4").hasFailed());
+//     REQUIRE(TestParser::parse("").hasFailed());
+//     REQUIRE(TestParser::parse("  ").hasFailed());
+// }
+
+TEST_CASE("+ Resolution next to a + operator", "[Parser + Resolver]") {
+    // auto extract1 = TestParser::parse("1+4d8+");
+    // REQUIRE_FALSE(extract1.error());
+
+    auto extract2 = TestParser::parse("4d8++1");
+    REQUIRE_FALSE(extract2.error());
 }
+
+// 2d6+/2
+
+// TEST_CASE("+ Resolution next to a + operator", "[Parser]") {
+//     auto extract = TestParser::parse("4d8++1");
+//     REQUIRE_FALSE(extract.error());
+// }

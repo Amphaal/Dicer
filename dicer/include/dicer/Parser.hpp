@@ -25,8 +25,9 @@
 
 #include <tao/pegtl.hpp>
 #include <tao/pegtl/contrib/analyze.hpp>
+#include <tao/pegtl/contrib/trace.hpp>
 
-#include "DicerPEGTL.hpp"
+#include "PEGTL/_.hpp"
 
 namespace Dicer {
 
@@ -48,6 +49,8 @@ class Parser {
         try {
             pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, extract);
         } catch (const std::logic_error &e) {
+            extract.setError(e.what());
+        } catch (tao::pegtl::parse_error &e) {
             extract.setError(e.what());
         } catch (...) {
             extract.setError("Unhandled error");
