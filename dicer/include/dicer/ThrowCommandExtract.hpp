@@ -47,10 +47,6 @@ class ThrowCommandExtract {
         _errorString = error;
     }
 
-    CommandOperators& operators() {
-        return _operators;
-    }
-
     // open a dice throw stack
     void openStack() {
         auto newStack = new ThrowCommandStack;
@@ -120,7 +116,6 @@ class ThrowCommandExtract {
 
  protected:
     std::string _errorString;
-    CommandOperators _operators;  // operators before stack, because of destructors
     ThrowCommandStack _master;
 
  private:

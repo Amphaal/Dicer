@@ -59,7 +59,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
 
     void resolve(GameContext *gContext, PlayerContext* pContext) override {
         _resolved = DiceThrow::_resolve(gContext, pContext);
-        _MightDefineGroupedResolved();
+        _mightResolveSingleValue();
 
         ResolvableBase::resolve(gContext, pContext);
     }
@@ -93,7 +93,6 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
 
  private:
     ResolvableBase* _facesResolvable = nullptr;
-    unsigned int _groupedResolved = 0;
     GroupingMethod _rm = DoNotResolve;
 
     void _setFacesResolvable(ResolvableBase* resolvable) {
@@ -109,25 +108,25 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
         return faces;
     }
 
-    void _MightDefineGroupedResolved() {
+    void _mightResolveSingleValue() {
         switch(_rm) {
             case GroupingMethod::Aggregate : {
-                _groupedResolved = std::accumulate(_resolved.begin(), _resolved.end(), 0);
+                _resolvedSingleValue = std::accumulate(_resolved.begin(), _resolved.end(), 0);
             }
             break;
 
             case GroupingMethod::HighestValue : {
-                _groupedResolved = *std::max_element(_resolved.begin(), _resolved.end());
+                _resolvedSingleValue = *std::max_element(_resolved.begin(), _resolved.end());
             }
             break;
 
             case GroupingMethod::LowestValue : {
-                _groupedResolved = *std::min_element(_resolved.begin(), _resolved.end());
+                _resolvedSingleValue = *std::min_element(_resolved.begin(), _resolved.end());
             }
             break;
 
             default : {
-                // do not set _groupedResolved
+                // do not set _resolvedSingleValue
             }
             break;
         }
@@ -163,7 +162,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
             break;
         }
 
-        descr += std::to_string(_groupedResolved) + ")";
+        descr += std::to_string(_resolvedSingleValue) + ")";
         return descr;
     }
 };

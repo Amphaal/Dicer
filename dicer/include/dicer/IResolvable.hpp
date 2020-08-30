@@ -59,30 +59,31 @@ class ResolvableOperation : public IResolvable {
     std::function< double( double, double ) > _operation;
 };
 
-struct CommandOperators {
-    CommandOperators() {
-        // By default we initialise with all binary operators from the C language that can be
-        // used on integers, all with their usual priority.
-        _ops.try_emplace("*", new ResolvableOperation("*", order( 5 ), []( const double l, const double r ) { return l * r; }));
-        _ops.try_emplace( "/", new ResolvableOperation("/", order( 5 ), []( const double l, const double r ) { return l / r; }));
-        _ops.try_emplace( "+", new ResolvableOperation("+", order( 6 ), []( const double l, const double r ) { return l + r; }));
-        _ops.try_emplace( "-", new ResolvableOperation("-", order( 6 ), []( const double l, const double r ) { return l - r; }));
-        _ops.try_emplace( ">", new ResolvableOperation("+", order( 7 ), []( const double l, const double r ) { return l > r; }));
-        _ops.try_emplace( "<", new ResolvableOperation("-", order( 7 ), []( const double l, const double r ) { return l < r; }));
-    }
-
+class CommandOperators : public std::map<std::string, ResolvableOperation*> {
+ public:
     ~CommandOperators() {
-        for(auto op : _ops) {
+        for(auto op : (*this)) {
             delete op.second;
         }
     }
 
-    [[nodiscard]] const std::map<std::string, ResolvableOperation*>& ops() const noexcept {
-        return _ops;
+    static const CommandOperators* get() {
+        if(!_get) _get = new CommandOperators;
+        return _get;
     }
 
  private:
-    std::map<std::string, ResolvableOperation*> _ops;
+    static inline CommandOperators* _get = nullptr;
+    CommandOperators() {
+        // By default we initialise with all binary operators from the C language that can be
+        // used on integers, all with their usual priority.
+        try_emplace("*", new ResolvableOperation("*", order( 5 ), []( const double l, const double r ) { return l * r; }));
+        try_emplace( "/", new ResolvableOperation("/", order( 5 ), []( const double l, const double r ) { return l / r; }));
+        try_emplace( "+", new ResolvableOperation("+", order( 6 ), []( const double l, const double r ) { return l + r; }));
+        try_emplace( "-", new ResolvableOperation("-", order( 6 ), []( const double l, const double r ) { return l - r; }));
+        try_emplace( ">", new ResolvableOperation("+", order( 7 ), []( const double l, const double r ) { return l > r; }));
+        try_emplace( "<", new ResolvableOperation("-", order( 7 ), []( const double l, const double r ) { return l < r; }));
+    }
 };
 
 }  // namespace Dicer

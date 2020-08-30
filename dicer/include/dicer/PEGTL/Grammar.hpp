@@ -74,13 +74,13 @@ struct infix {
  private:
     template< typename ParseInput >
     static bool match( ParseInput& in, Dicer::ThrowCommandExtract& r, std::string t ) {
-        auto &b = r.operators();
+        auto b = CommandOperators::get();
 
         if( in.size( t.size() + 1 ) > t.size() ) {
             t += in.peek_char( t.size() );
-            const auto i = b.ops().lower_bound( t );
+            const auto i = b->lower_bound( t );
 
-            if( i != b.ops().end() ) {
+            if( i != b->end() ) {
                 if( match( in, r, t ) ) {
                     return true;
                 }

@@ -22,9 +22,10 @@
 #include <string>
 
 #include "dicer/Parser.hpp"
+#include "dicer/Resolver.hpp"
 
 // utility to shorten tests cases
-class TestParser {
+class TestUtility {
  public:
     static Dicer::ThrowCommandExtract parse(const std::string &command) {
         return Dicer::Parser::parseThrowCommand(&_gContext, &_pContext, command);

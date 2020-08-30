@@ -19,14 +19,9 @@
 
 #pragma once
 
-#include <iostream>
 #include <string>
-#include <utility>
 
-#include <tao/pegtl.hpp>
-#include <tao/pegtl/contrib/analyze.hpp>
-
-#include "PEGTL/_.hpp"
+#include "ThrowCommandExtract.hpp"
 
 namespace Dicer {
 
@@ -34,60 +29,56 @@ namespace Dicer {
 
 class Resolver {
  public:
-    explicit Resolver(Dicer::GameContext* gContext) : _gContext(gContext) {
-        if(!_gContext) throw std::logic_error("Empty game context given as arguement for command parser!");
-    }
-
-    std::string resolveDebug(const Dicer::ThrowCommandExtract &extract) const {
+    static std::string asString(const Dicer::ThrowCommandExtract &extract, Dicer::GameContext* gContext, Dicer::PlayerContext* pContext) {
         // recursive resolve
-        _resolveStack(&extract.masterStack(), extract.playerContext());
+        _resolveStack(&extract.masterStack(), gContext, pContext);
 
         // get debug text
         return extract.masterStack().resolvedDescription();
     }
 
  private:
-    void _resolveStack(const ThrowCommandStack* stack, PlayerContext* pContext) const {
+    static void _resolveStack(const ThrowCommandStack* stack, Dicer::GameContext* gContext, Dicer::PlayerContext* pContext) {
         for(auto iresolvables : stack->orderedResolvables()) {
             // if stack, recurse
             auto stack = dynamic_cast<const ThrowCommandStack*>(iresolvables);
-            if(stack) _resolveStack(stack, pContext);
+            if(stack) _resolveStack(stack, gContext, pContext);
 
             // if not resolvable, skip
             auto resolvable = dynamic_cast<ResolvableBase*>(iresolvables);
             if(!resolvable) continue;
 
             // resolve
-            resolvable->resolve(_gContext, pContext);
+            resolvable->resolve(gContext, pContext);
         }
     }
 
-    // double resolve(GameContext *gContext, PlayerContext* pContext) const {	
-    //     // assert	
-    //     auto rslvblsCount = _resolvables.size();	
-    //     assert( rslvblsCount > 1 );	
-    //     assert( _ops.size() == rslvblsCount - 1  );	
+    // double computeStackIntoSingleValue(const ThrowCommandStack* stack, GameContext *gContext, PlayerContext* pContext) const {
+    //     // assert
+    //     auto rslvblsCount = stack->orderedResolvables().size();
+    //     assert( rslvblsCount > 1 );
+    //     assert( _ops.size() == rslvblsCount - 1  );
 
-    //     // populate first	
-    //     double result = _resolvables.back()->resolve(gContext, pContext);	
-    //     rslvblsCount--;	
+    //     // populate first
+    //     double result = _resolvables.back()->resolve(gContext, pContext);
+    //     rslvblsCount--;
 
-    //     // iterate each others	
-    //     while(rslvblsCount) {	
-    //         auto index = rslvblsCount - 1;	
-    //         auto &opPart = _ops[index];	
-    //         auto &leftResolvable = _resolvables[index];	
+    //     // iterate each others
+    //     while(rslvblsCount) {
+    //         auto index = rslvblsCount - 1;
+    //         auto &opPart = _ops[index];
+    //         auto &leftResolvable = _resolvables[index];
 
-    //         // result is right part	
-    //         result = opPart.operate(	
-    //             leftResolvable->resolve(gContext, pContext),	
-    //             result	
-    //         );	
+    //         // result is right part
+    //         result = opPart.operate(
+    //             leftResolvable->resolve(gContext, pContext),
+    //             result
+    //         );
 
-    //         rslvblsCount--;	
-    //     }	
+    //         rslvblsCount--;
+    //     }
 
-    //     return result;	
+    //     return result;
     // }
 };
 

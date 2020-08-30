@@ -30,9 +30,9 @@ namespace Dicer {
 class ResolvableBase : public IResolvable {
  public:
     virtual ~ResolvableBase() {}
-    // basically only tag as resolved
+
     virtual void resolve(GameContext *gContext, PlayerContext* pContext) {
-        _beenResolved = true;
+        _beenResolved = true;  // basically only tag as resolved
     }
     virtual bool isSingleValueResolvable() const = 0;
 

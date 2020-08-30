@@ -2,7 +2,7 @@
 add_subdirectory(Catch2)
 add_executable(dicer_tests 
     tests.cpp
-    specialized/TestParser.hpp
+    specialized/TestUtility.hpp
 )
 
 target_link_libraries(dicer_tests

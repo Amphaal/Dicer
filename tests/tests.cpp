@@ -22,7 +22,7 @@
 #include <catch2/catch.hpp>
 
 #include "dicer/PEGTL/_.hpp"
-#include "specialized/TestParser.hpp"
+#include "specialized/TestUtility.hpp"
 
 // TEST_CASE("Must fail tests - how many parts", "[Parser]") {
 //     // command throw
@@ -38,7 +38,7 @@
 // }
 
 TEST_CASE("+ Resolution next to a + operator", "[Parser]") {
-    auto extract2 = TestParser::parse("4d8++1");
+    auto extract2 = TestUtility::parse("4d8++1");
     REQUIRE_FALSE(extract2.error());
 }
 
