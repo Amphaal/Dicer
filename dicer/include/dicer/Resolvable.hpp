@@ -30,7 +30,25 @@ namespace Dicer {
 class ResolvableBase : public IResolvable {
  public:
     virtual ~ResolvableBase() {}
-    virtual void resolve(GameContext *gContext, PlayerContext* pContext) {}
+    // basically only tag as resolved
+    virtual void resolve(GameContext *gContext, PlayerContext* pContext) {
+        _beenResolved = true;
+    }
+    virtual bool isSingleValueResolvable() const = 0;
+
+    bool haveBeenResolved() const {
+        return _beenResolved;
+    }
+
+    double resolvedSingleValue() const {
+        return _resolvedSingleValue;
+    }
+
+ protected:
+    double _resolvedSingleValue = 0;
+
+ private:
+    bool _beenResolved = false;
 };
 
 template<class T>
@@ -45,19 +63,23 @@ class Resolvable : public ResolvableBase {
     T _resolved;
 };
 
-class ResolvableNumber : public Resolvable<double> {
+class ResolvableNumber : public ResolvableBase {
  public:
     explicit ResolvableNumber(double result) {
-        _resolved = result;
+        _resolvedSingleValue = result;
     }
     ~ResolvableNumber() {}
 
     std::string resolvedDescription() const override {
-        return std::to_string(_resolved);
+        return std::to_string(_resolvedSingleValue);
+    }
+
+    bool isSingleValueResolvable() const override {
+        return true;
     }
 };
 
-class ResolvableStat : public Resolvable<double> {
+class ResolvableStat : public ResolvableBase {
  public:
     explicit ResolvableStat(const std::string &statName) : _statName(statName) {}
     ~ResolvableStat() {}
@@ -70,11 +92,17 @@ class ResolvableStat : public Resolvable<double> {
             throw std::logic_error("Cannot find associated stat value [" + _statName + "] in the player's context.");
         }
 
-        _resolved = found->second;
+        _resolvedSingleValue = found->second;
+
+        ResolvableBase::resolve(gContext, pContext);
     }
 
     std::string resolvedDescription() const override {
-        return _statName + "(" +  std::to_string(_resolved) + ")";
+        return _statName + "(" +  std::to_string(_resolvedSingleValue) + ")";
+    }
+
+    bool isSingleValueResolvable() const override {
+        return true;
     }
 
  private:

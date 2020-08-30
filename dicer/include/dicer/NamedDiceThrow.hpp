@@ -34,18 +34,18 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
         _setNamedDice(associatedNamedDice);
     }
 
-    DiceFace faces() const override {
-        return _associatedNamedDice->facesCount();
-    }
-
     const NamedDice* namedDice() const {
         return _associatedNamedDice;
+    }
+
+    bool isSingleValueResolvable() const override {
+        return false;
     }
 
     // throw dice
     void resolve(GameContext *gContext, PlayerContext* pContext) override {
         // setup search
-        auto mRResults = DiceThrow::_resolve(pContext);
+        auto mRResults = DiceThrow::_resolve(gContext, pContext);
 
         _resolved.clear();
 
@@ -54,6 +54,8 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
             auto associatedName = _associatedNamedDice->getFaceName(result);
             _resolved.push_back(associatedName);
         }
+
+        ResolvableBase::resolve(gContext, pContext);
     }
 
     std::string toString() const override {
@@ -85,6 +87,10 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
     void _setNamedDice(const NamedDice* associatedNamedDice) {
         if (!associatedNamedDice) throw std::logic_error("Named dice associated with throw does not exist");
         _associatedNamedDice = associatedNamedDice;
+    }
+
+    DiceFace _resolveFaces(GameContext *gContext, PlayerContext* pContext) override {
+        return _associatedNamedDice->facesCount();
     }
 };
 

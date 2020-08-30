@@ -25,6 +25,7 @@
 
 #include "ThrowCommandStack.hpp"
 #include "FacedDiceThrow.hpp"
+#include "NamedDiceThrow.hpp"
 
 namespace Dicer {
 
@@ -55,6 +56,12 @@ class ThrowCommandExtract {
         auto newStack = new ThrowCommandStack;
         _stacks.back()->push(newStack);
         _stacks.emplace_back(newStack);
+
+        // if "how many" buffer is relevant, add faced dice throw
+        if(_bufferHowMany) {
+            auto fdt = new FacedDiceThrow(_bufferHowMany, newStack);
+            push(fdt);
+        }
     }
 
     // push into current dice throw stack
@@ -62,6 +69,22 @@ class ThrowCommandExtract {
     void push( const T& t ) {
         assert( !_stacks.empty() );
         _stacks.back()->push( t );
+
+        // reset "how many" dice throw buffer
+        auto dt = dynamic_cast<DiceThrow*>(t);
+        if(dt) _bufferHowMany = 0;
+    }
+    void pushSimpleFaced(DiceFace faces) {
+        auto fdt = new FacedDiceThrow(_bufferHowMany, faces);
+        push(fdt);
+    }
+    void pushNamed(const NamedDice* associatedNamedDice) {
+        auto ndt = new NamedDiceThrow(_bufferHowMany, associatedNamedDice);
+        push(ndt);
+    }
+    void pushNumber(double number) {
+        auto rNumber = new ResolvableNumber(number);
+        push(rNumber);
     }
 
     // close a dice throw stack
@@ -82,7 +105,11 @@ class ThrowCommandExtract {
         return _master;
     }
 
-    //
+    void setHowManyBuffer(unsigned int howMany) {
+        assert(!_bufferHowMany);
+        _bufferHowMany = howMany;
+    }
+
     FacedDiceThrow* latestFDT() const {
         auto iresolvable = masterStack().orderedResolvables().back();
         auto fdt = dynamic_cast<FacedDiceThrow*>(iresolvable);
@@ -90,7 +117,6 @@ class ThrowCommandExtract {
 
         return fdt;
     }
-    unsigned int _bufferHowMany = 0;
 
  protected:
     std::string _errorString;
@@ -98,8 +124,8 @@ class ThrowCommandExtract {
     ThrowCommandStack _master;
 
  private:
-    // TODO(amphaal) include string_view resolvable tracker
-    std::vector<ThrowCommandStack*> _stacks;
+    std::vector<ThrowCommandStack*> _stacks;  // TODO(amphaal) include string_view resolvable tracker
+    unsigned int _bufferHowMany = 0;
 };
 
 }  // namespace Dicer

@@ -37,10 +37,7 @@
 //     REQUIRE(TestParser::parse("  ").hasFailed());
 // }
 
-TEST_CASE("+ Resolution next to a + operator", "[Parser + Resolver]") {
-    // auto extract1 = TestParser::parse("1+4d8+");
-    // REQUIRE_FALSE(extract1.error());
-
+TEST_CASE("+ Resolution next to a + operator", "[Parser]") {
     auto extract2 = TestParser::parse("4d8++1");
     REQUIRE_FALSE(extract2.error());
 }

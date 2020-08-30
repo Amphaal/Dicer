@@ -34,7 +34,7 @@ namespace Dicer {
 // reduce-step it calls on the functions contained in the op
 // instances to perform the calculation.
 
-class ThrowCommandStack : public IResolvable {
+class ThrowCommandStack : public ResolvableBase {
  public:
     ThrowCommandStack() {}
     ~ThrowCommandStack() {
@@ -69,6 +69,27 @@ class ThrowCommandStack : public IResolvable {
         out.erase(out.size() - 1, 1);
 
         return out;
+    }
+
+    void resolve(GameContext *gContext, PlayerContext* pContext) override {
+        for(auto resolvable : _resolvables) {
+            auto base = dynamic_cast<ResolvableBase*>(resolvable);
+            if(!base) continue;
+            base->resolve(gContext, pContext);
+        }
+
+        ResolvableBase::resolve(gContext, pContext);
+    }
+
+    bool isSingleValueResolvable() const override {
+        for(auto resolvable : _resolvables) {
+            auto base = dynamic_cast<ResolvableBase*>(resolvable);
+            if(!base) continue;
+            auto isSVR = base->isSingleValueResolvable();
+            if(!isSVR) return false;
+        }
+
+        return true;
     }
 
  private:

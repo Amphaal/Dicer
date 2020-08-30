@@ -54,7 +54,7 @@ struct action< number > {
         double val = atof(in.string().c_str());
 
         // push number
-        r.push(new ResolvableNumber(val));
+        r.pushNumber(val);
     }
 };
 
@@ -76,7 +76,7 @@ struct action< one< ')' > > {
 };
 
 //
-// Trying to build a dice throw...
+// all dices throws
 //
 
 template<>
@@ -84,19 +84,28 @@ struct action< how_many > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
         auto howMany = stoi(in.string());
-        r._bufferHowMany = howMany;
+        r.setHowManyBuffer(howMany);
     }
 };
+
+//
+// Trying to build a faced dice throw...
+//
+
 template<>
-struct action< dice_faces > {
+struct action< faces_value > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        // generate faced dice throw
+        // get in situ numeric dice face value
         auto faces = stoi(in.string());
-        auto fdt = new FacedDiceThrow(r._bufferHowMany, faces);
-        r.push(fdt);
+        r.pushSimpleFaced(faces);
     }
 };
+
+//
+// named dices case
+//
+
 template<>
 struct action< custom_dice_id > {
     template< typename ActionInput >
@@ -115,8 +124,7 @@ struct action< custom_dice_id > {
         auto namedDice = &found->second;
 
         // generate named dice throw
-        auto ndt = new NamedDiceThrow(r._bufferHowMany, namedDice);
-        r.push(ndt);
+        r.pushNamed(namedDice);
     }
 };
 

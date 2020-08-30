@@ -25,6 +25,8 @@
 
 #include "_Base.hpp"
 
+#include "Resolvable.hpp"
+
 namespace Dicer {
 
 class DiceThrow {
@@ -37,16 +39,20 @@ class DiceThrow {
         return _howMany;
     }
 
-    virtual DiceFace faces() const = 0;
     virtual std::string toString() const {
         return std::to_string(_howMany) + "d";
     }
 
  protected:
-    std::vector<DiceFaceResult> _resolve(PlayerContext* pContext) const {
+    // helper to specifically resolve faces component
+    virtual DiceFace _resolveFaces(GameContext *gContext, PlayerContext* pContext) = 0;
+
+    std::vector<DiceFaceResult> _resolve(Dicer::GameContext *gContext, PlayerContext* pContext) {
+        // try to resolve face component
+        auto faces = _resolveFaces(gContext, pContext);
+
         // try to find a throw repartition
         std::vector<DiceFaceResult> results;
-        auto faces = this->faces();
         auto &occurences = pContext->occurences;
         auto find = pContext->occurences.find(faces);
 

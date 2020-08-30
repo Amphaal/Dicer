@@ -109,9 +109,7 @@ struct expression;
 // A bracketed expression is introduced by a '(' and, in this grammar, must
 // proceed with an expression and a ')'.
 
-struct bracket
-    : if_must< one< '(' >, expression, one< ')' > >
-{};
+struct bracket : if_must< one< '(' >, expression, one< ')' > > {};
 
 //
 // resolving method for dices
@@ -126,12 +124,14 @@ struct rm_highest_value : string<'m', 'a', 'x'> {};
 // composition of a dice throw
 //
 
+
 struct custom_dice_id : plus< alpha > {};
-struct dice_faces : plus< digit > {};
-struct df_or_cd : sor<dice_faces, custom_dice_id> {};
+struct faces_value : plus< digit > {};
+struct faced_dice : sor<faces_value, bracket> {};
+struct faces_part_of_throw : sor<custom_dice_id, faced_dice> {};
 struct dice_separator : one< 'd', 'D' > {};
 struct how_many : plus< digit > {};
-    struct dice_throw : seq< how_many, dice_separator, df_or_cd, resolving_method> {};
+    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, resolving_method> {};
 
 //
 // macro

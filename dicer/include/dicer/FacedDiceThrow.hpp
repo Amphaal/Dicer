@@ -24,12 +24,12 @@
 #include <string>
 #include <algorithm>
 
-#include "Resolvable.hpp"
 #include "DiceThrow.hpp"
+#include "ThrowCommandStack.hpp"
 
 namespace Dicer {
 
-// TODO() ability to compute dice face
+// TODO(amphaal) ability to compute dice face
 
 class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
@@ -38,26 +38,34 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
         Aggregate,
         HighestValue,
         LowestValue,
-        // Ceiled                      // TODO(stagiaire)
-        // HighestValueAddsOneMore     // TODO(stagiaire)
-        // LowestValueSubstractOneMore // TODO(stagiaire)
+        // Ceiled        // TODO(stagiaire)
+        // CriticalLow   // TODO(stagiaire)
+        // CriticalHigh  // TODO(stagiaire)
+        // Critical      // TODO(stagiaire)
     };
 
-    explicit FacedDiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {
-        _setFaces(faces);
+    explicit FacedDiceThrow(unsigned int howMany, ThrowCommandStack* stack) : DiceThrow(howMany) {
+        _setFacesResolvable(stack);
     }
 
-    DiceFace faces() const override {
-       return _faces;
+    FacedDiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {
+        _setFacesResolvable(new ResolvableNumber(faces));
+    }
+
+    bool isSingleValueResolvable() const override {
+        if(howMany() > 1 && _rm == DoNotResolve) return false;
+        return _facesResolvable->isSingleValueResolvable();
     }
 
     void resolve(GameContext *gContext, PlayerContext* pContext) override {
-        _resolved = DiceThrow::_resolve(pContext);
+        _resolved = DiceThrow::_resolve(gContext, pContext);
         _MightDefineGroupedResolved();
+
+        ResolvableBase::resolve(gContext, pContext);
     }
 
     std::string toString() const override {
-        return DiceThrow::toString() + std::to_string(_faces);
+        return DiceThrow::toString() + _facesResolvable->resolvedDescription();
     }
 
     std::string resolvedDescription() const override {
@@ -84,13 +92,21 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
  private:
-    DiceFace _faces = 0;
+    ResolvableBase* _facesResolvable = nullptr;
     unsigned int _groupedResolved = 0;
     GroupingMethod _rm = DoNotResolve;
 
-    void _setFaces(DiceFace faces) {
+    void _setFacesResolvable(ResolvableBase* resolvable) {
+        _facesResolvable = resolvable;
+    }
+
+    DiceFace _resolveFaces(GameContext *gContext, PlayerContext* pContext) override {
+        assert(_facesResolvable);
+        _facesResolvable->resolve(gContext, pContext);
+        assert(_facesResolvable->isSingleValueResolvable());
+        auto faces = _facesResolvable->resolvedSingleValue();
         if (faces <= 1) throw std::logic_error("A dice face must be > 1");
-        _faces = faces;
+        return faces;
     }
 
     void _MightDefineGroupedResolved() {
