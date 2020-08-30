@@ -34,36 +34,41 @@ namespace Dicer {
 // reduce-step it calls on the functions contained in the op
 // instances to perform the calculation.
 
+class Resolver;
+
 class ThrowCommandStack : public ResolvableBase {
  public:
+    friend class Resolver;
+
     ThrowCommandStack() {}
     ~ThrowCommandStack() {
-        for(auto resolvablePtr : _resolvables) {
-            auto op = dynamic_cast<ResolvableOperation*>(resolvablePtr);
-            if(!op) delete resolvablePtr;
+        for(auto descriptible : _components) {
+            auto op = dynamic_cast<ResolvableOperation*>(descriptible);
+            if(!op) delete descriptible;
         }
     }
 
-    void push(IResolvable* rslvbl) {
-        _resolvables.push_back(rslvbl);
+    void push(IDescriptible* rslvbl) {
+        _components.push_back(rslvbl);
+
+        auto op = dynamic_cast<ResolvableOperation*>(rslvbl);
+        if (!op) return;
+
+        _opsIndexByOrder[op->opOrder()].push_back(_components.size() - 1);
     }
 
-    const std::vector<IResolvable*>& orderedResolvables() const {
-        return _resolvables;
-    }
-
-    std::string resolvedDescription() const override {
+    std::string description() const override {
         // return empty
         std::string out;
-        auto rslvblsCount = _resolvables.size();
+        auto rslvblsCount = _components.size();
         if(!rslvblsCount) return out;
 
         // assert
         assert( rslvblsCount % 2 != 0 );
 
         // populate first
-        for(auto resolvable : _resolvables) {
-            out += resolvable->resolvedDescription() + " ";
+        for(auto descriptible : _components) {
+            out += descriptible->description() + " ";
         }
 
         out.erase(out.size() - 1, 1);
@@ -72,20 +77,22 @@ class ThrowCommandStack : public ResolvableBase {
     }
 
     void resolve(GameContext *gContext, PlayerContext* pContext) override {
-        for(auto resolvable : _resolvables) {
-            auto base = dynamic_cast<ResolvableBase*>(resolvable);
-            if(!base) continue;
-            base->resolve(gContext, pContext);
+        for(auto descriptible : _components) {
+            auto resolvable = dynamic_cast<ResolvableBase*>(descriptible);
+            if(!resolvable) continue;
+
+            resolvable->resolve(gContext, pContext);
         }
 
         ResolvableBase::resolve(gContext, pContext);
     }
 
     bool isSingleValueResolvable() const override {
-        for(auto resolvable : _resolvables) {
-            auto base = dynamic_cast<ResolvableBase*>(resolvable);
-            if(!base) continue;
-            auto isSVR = base->isSingleValueResolvable();
+        for(auto descriptible : _components) {
+            auto resolvable = dynamic_cast<ResolvableBase*>(descriptible);
+            if(!resolvable) continue;
+
+            auto isSVR = resolvable->isSingleValueResolvable();
             if(!isSVR) return false;
         }
 
@@ -93,7 +100,8 @@ class ThrowCommandStack : public ResolvableBase {
     }
 
  private:
-    std::vector< IResolvable* > _resolvables;
+    std::vector< IDescriptible* > _components;
+    std::map<ResolvableOperation::Order, std::vector<int>> _opsIndexByOrder;
 };
 
 }  // namespace Dicer

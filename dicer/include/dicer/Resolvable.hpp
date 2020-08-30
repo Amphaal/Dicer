@@ -22,12 +22,12 @@
 #include <string>
 #include <map>
 
-#include "IResolvable.hpp"
+#include "IDescriptible.hpp"
 #include "Contexts.hpp"
 
 namespace Dicer {
 
-class ResolvableBase : public IResolvable {
+class ResolvableBase : public IDescriptible {
  public:
     virtual ~ResolvableBase() {}
 
@@ -70,7 +70,7 @@ class ResolvableNumber : public ResolvableBase {
     }
     ~ResolvableNumber() {}
 
-    std::string resolvedDescription() const override {
+    std::string description() const override {
         return std::to_string(_resolvedSingleValue);
     }
 
@@ -97,7 +97,7 @@ class ResolvableStat : public ResolvableBase {
         ResolvableBase::resolve(gContext, pContext);
     }
 
-    std::string resolvedDescription() const override {
+    std::string description() const override {
         return _statName + "(" +  std::to_string(_resolvedSingleValue) + ")";
     }
 

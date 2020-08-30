@@ -37,8 +37,12 @@ namespace Dicer {
 // is handled just like a bracketed sub-expression, on the first stack pushed
 // by the constructor.
 
+class Resolver;
+
 class ThrowCommandExtract {
  public:
+    friend class Resolver;
+
     ThrowCommandExtract() {
         _stacks.emplace_back(&_master);
     }
@@ -46,6 +50,17 @@ class ThrowCommandExtract {
     void setError(const std::string &error) {
         _errorString = error;
     }
+
+    const char * error() const {
+        return _errorString.empty() ? nullptr : _errorString.c_str();
+    }
+    bool hasFailed() const {
+        return _errorString.size();
+    }
+
+    //
+    //
+    //
 
     // open a dice throw stack
     void openStack() {
@@ -72,6 +87,7 @@ class ThrowCommandExtract {
     }
     void pushSimpleFaced(DiceFace faces) {
         auto fdt = new FacedDiceThrow(_bufferHowMany, faces);
+        _latestFDT = fdt;
         push(fdt);
     }
     void pushNamed(const NamedDice* associatedNamedDice) {
@@ -89,38 +105,26 @@ class ThrowCommandExtract {
         _stacks.pop_back();
     }
 
-    bool hasFailed() const {
-        return _errorString.size();
-    }
-
-    const char * error() const {
-        return _errorString.empty() ? nullptr : _errorString.c_str();
-    }
-
-    const ThrowCommandStack& masterStack() const {
-        return _master;
-    }
-
     void setHowManyBuffer(unsigned int howMany) {
         assert(!_bufferHowMany);
         _bufferHowMany = howMany;
     }
 
     FacedDiceThrow* latestFDT() const {
-        auto iresolvable = masterStack().orderedResolvables().back();
-        auto fdt = dynamic_cast<FacedDiceThrow*>(iresolvable);
-        assert(fdt);
-
-        return fdt;
+        assert(_latestFDT);
+        return _latestFDT;
     }
 
- protected:
-    std::string _errorString;
-    ThrowCommandStack _master;
+    //
+    //
+    //
 
  private:
     std::vector<ThrowCommandStack*> _stacks;  // TODO(amphaal) include string_view resolvable tracker
     unsigned int _bufferHowMany = 0;
+    FacedDiceThrow* _latestFDT = nullptr;
+    std::string _errorString;
+    ThrowCommandStack _master;
 };
 
 }  // namespace Dicer

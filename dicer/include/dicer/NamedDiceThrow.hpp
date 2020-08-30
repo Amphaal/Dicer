@@ -62,7 +62,7 @@ class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::stri
         return DiceThrow::toString() + _associatedNamedDice->diceName();
     }
 
-    std::string resolvedDescription() const override {
+    std::string description() const override {
         std::string joinedDescriptor;
 
         if(_resolved.size()) {

@@ -40,6 +40,7 @@
 TEST_CASE("+ Resolution next to a + operator", "[Parser]") {
     auto extract2 = TestUtility::parse("4d8++1");
     REQUIRE_FALSE(extract2.error());
+    std::cout << TestUtility::resolve(extract2) << std::endl;
 }
 
 // 2d6+/2

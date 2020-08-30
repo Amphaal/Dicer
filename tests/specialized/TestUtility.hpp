@@ -31,6 +31,10 @@ class TestUtility {
         return Dicer::Parser::parseThrowCommand(&_gContext, &_pContext, command);
     }
 
+    static std::string resolve(Dicer::ThrowCommandExtract &extract) {
+        return Dicer::Resolver::asString(&_gContext, &_pContext, extract);
+    }
+
     static Dicer::GameContext gameContext() {
         return _gContext;
     }

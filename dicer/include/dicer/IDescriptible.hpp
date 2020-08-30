@@ -27,35 +27,43 @@
 
 namespace Dicer {
 
-class IResolvable {
+class IDescriptible {
  public:
-    virtual ~IResolvable() {}
-    virtual std::string resolvedDescription() const = 0;
+    virtual ~IDescriptible() {}
+    virtual std::string description() const = 0;
 };
-
-// This enum is used for the order in which the operators are
-// evaluated, i.e. the priority of the operators; a higher
-// number indicates a lower priority.
-
-enum class order : int {};
 
 // For each binary operator known to the calculator we need an
 // instance of the following data structure with the priority,
 // and a function that performs the calculation. All operators
 // are left-associative.
 
-class ResolvableOperation : public IResolvable {
+class ResolvableOperation : public IDescriptible {
  public:
+    // This enum is used for the order in which the operators are
+    // evaluated, i.e. the priority of the operators; a higher
+    // number indicates a lower priority.
+    using Order = int;
+
     using Operation = std::function< double( double, double ) >;
-    ResolvableOperation(const std::string &sign, order opOrder, const Operation &operation)
+    ResolvableOperation(const std::string &sign, Order opOrder, const Operation &operation)
         : _sign(sign), _opOrder(opOrder), _operation(operation) {}
 
-    std::string resolvedDescription() const override {
+    std::string description() const override {
         return _sign;
     }
+
+    Order opOrder() const {
+        return _opOrder;
+    }
+
+    double operate(double l, double r) const {
+        return _operation(l, r);
+    }
+
  private:
     std::string _sign;
-    order _opOrder;
+    Order _opOrder;
     std::function< double( double, double ) > _operation;
 };
 
@@ -77,12 +85,10 @@ class CommandOperators : public std::map<std::string, ResolvableOperation*> {
     CommandOperators() {
         // By default we initialise with all binary operators from the C language that can be
         // used on integers, all with their usual priority.
-        try_emplace("*", new ResolvableOperation("*", order( 5 ), []( const double l, const double r ) { return l * r; }));
-        try_emplace( "/", new ResolvableOperation("/", order( 5 ), []( const double l, const double r ) { return l / r; }));
-        try_emplace( "+", new ResolvableOperation("+", order( 6 ), []( const double l, const double r ) { return l + r; }));
-        try_emplace( "-", new ResolvableOperation("-", order( 6 ), []( const double l, const double r ) { return l - r; }));
-        try_emplace( ">", new ResolvableOperation("+", order( 7 ), []( const double l, const double r ) { return l > r; }));
-        try_emplace( "<", new ResolvableOperation("-", order( 7 ), []( const double l, const double r ) { return l < r; }));
+        try_emplace("*", new ResolvableOperation("*", 5, []( const double l, const double r ) { return l * r; }));
+        try_emplace("/", new ResolvableOperation("/", 5, []( const double l, const double r ) { return l / r; }));
+        try_emplace("+", new ResolvableOperation("+", 6, []( const double l, const double r ) { return l + r; }));
+        try_emplace("-", new ResolvableOperation("-", 6, []( const double l, const double r ) { return l - r; }));
     }
 };
 
