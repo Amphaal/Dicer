@@ -26,24 +26,12 @@
 
 #include "DiceThrow.hpp"
 #include "ThrowCommandStack.hpp"
+#include "DiceThrowResolvingMethod.hpp"
 
 namespace Dicer {
 
-// TODO(amphaal) ability to compute dice face
-
 class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
-     enum GroupingMethod {
-        DoNotResolve,
-        Aggregate,
-        HighestValue,
-        LowestValue,
-        // Ceiled        // TODO(stagiaire)
-        // CriticalLow   // TODO(stagiaire)
-        // CriticalHigh  // TODO(stagiaire)
-        // Critical      // TODO(stagiaire)
-    };
-
     explicit FacedDiceThrow(unsigned int howMany, ThrowCommandStack* stack) : DiceThrow(howMany) {
         _setFacesResolvable(stack);
     }
@@ -53,7 +41,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
     bool isSingleValueResolvable() const override {
-        if(howMany() > 1 && _rm == DoNotResolve) return false;
+        if(howMany() > 1 && !_rm) return false;
         return _facesResolvable->isSingleValueResolvable();
     }
 
@@ -69,10 +57,10 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
     std::string description() const override {
-        std::string joinedDescriptor;
-
+        // describe dices results
+        std::string throwResults;
         if(_resolved.size()) {
-            joinedDescriptor = std::accumulate(
+            throwResults = std::accumulate(
                 _resolved.begin(),
                 _resolved.end(),
                 std::string(),
@@ -81,19 +69,26 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
                 }
             );
         } else {
-            joinedDescriptor = "not resolved";
+            throwResults = "not resolved";
         }
 
-        return toString() + "{" + joinedDescriptor + "}" + _groupedDescription();
+        // resolving method if any
+        std::string singleResolved;
+        if(_rm) {
+           singleResolved = _rm->funcName() + "(" + _strResolvedSingleValue() + ")";
+        }
+
+        // concatenate
+        return toString() + "{" + throwResults + "}" + singleResolved;
     }
 
-    void setResolvingMethod(GroupingMethod method) {
+    void setResolvingMethod(DiceThrowResolvingMethod* method) {
         _rm = method;
     }
 
  private:
     ResolvableBase* _facesResolvable = nullptr;
-    GroupingMethod _rm = DoNotResolve;
+    DiceThrowResolvingMethod* _rm = nullptr;
 
     void _setFacesResolvable(ResolvableBase* resolvable) {
         _facesResolvable = resolvable;
@@ -109,61 +104,8 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
     void _mightResolveSingleValue() {
-        switch(_rm) {
-            case GroupingMethod::Aggregate : {
-                _resolvedSingleValue = std::accumulate(_resolved.begin(), _resolved.end(), 0);
-            }
-            break;
-
-            case GroupingMethod::HighestValue : {
-                _resolvedSingleValue = *std::max_element(_resolved.begin(), _resolved.end());
-            }
-            break;
-
-            case GroupingMethod::LowestValue : {
-                _resolvedSingleValue = *std::min_element(_resolved.begin(), _resolved.end());
-            }
-            break;
-
-            default : {
-                // do not set _resolvedSingleValue
-            }
-            break;
-        }
-    }
-
-    std::string _groupedDescription() const {
-        std::string descr;
-
-        switch(_rm) {
-            case GroupingMethod::Aggregate : {
-                descr = "+(";
-            }
-            break;
-
-            case GroupingMethod::HighestValue : {
-                descr = "max(";
-            }
-            break;
-
-            case GroupingMethod::LowestValue : {
-                descr = "min(";
-            }
-            break;
-
-            case GroupingMethod::DoNotResolve : {
-                return descr;
-            }
-            break;
-
-            default : {
-                throw std::logic_error("Unimplemented resolving method for dice throw");
-            }
-            break;
-        }
-
-        descr += _strResolvedSingleValue() + ")";
-        return descr;
+        if(!_rm) return;
+        _resolvedSingleValue = _rm->resolve(_resolved);
     }
 };
 

@@ -26,8 +26,6 @@
 
 namespace Dicer {
 
-// TODO(amphaal) compute singular value
-
 class Resolver {
  public:
     static std::string asString(Dicer::GameContext* gContext, Dicer::PlayerContext* pContext, const Dicer::ThrowCommandExtract &extract) {

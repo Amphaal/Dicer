@@ -22,10 +22,12 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <utility>
 
 #include "ThrowCommandStack.hpp"
 #include "FacedDiceThrow.hpp"
 #include "NamedDiceThrow.hpp"
+#include "CommandDescriptorHelper.hpp"
 
 namespace Dicer {
 
@@ -77,7 +79,7 @@ class ThrowCommandExtract {
 
     // push into current dice throw stack
     template< typename T >
-    void push( const T& t ) {
+    void push( const T& t) {
         assert( !_stacks.empty() );
         _stacks.back()->push( t );
 
@@ -90,9 +92,12 @@ class ThrowCommandExtract {
         _latestFDT = fdt;
         push(fdt);
     }
-    void pushNamed(const NamedDice* associatedNamedDice) {
+    void pushNamed(const NamedDice* associatedNamedDice, const std::string_view &sv) {
         auto ndt = new NamedDiceThrow(_bufferHowMany, associatedNamedDice);
         push(ndt);
+
+        // add to tracker
+        _tracker.emplace_back(sv, associatedNamedDice);
     }
     void pushNumber(double number) {
         auto rNumber = new ResolvableNumber(number);
@@ -110,9 +115,13 @@ class ThrowCommandExtract {
         _bufferHowMany = howMany;
     }
 
-    FacedDiceThrow* latestFDT() const {
+    void defineResolvingMethodOnLatestDiceThrow(DiceThrowResolvingMethod *rm, const std::string_view &sv) {
         assert(_latestFDT);
-        return _latestFDT;
+        assert(rm);
+        _latestFDT->setResolvingMethod(rm);
+
+        // add to tracker
+        _tracker.emplace_back(sv, rm);
     }
 
     //
@@ -120,7 +129,8 @@ class ThrowCommandExtract {
     //
 
  private:
-    std::vector<ThrowCommandStack*> _stacks;  // TODO(amphaal) include string_view resolvable tracker
+    std::vector<CommandDescriptorHelper> _tracker;
+    std::vector<ThrowCommandStack*> _stacks;
     unsigned int _bufferHowMany = 0;
     FacedDiceThrow* _latestFDT = nullptr;
     std::string _errorString;

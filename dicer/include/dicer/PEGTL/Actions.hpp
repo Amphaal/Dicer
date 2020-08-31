@@ -124,7 +124,7 @@ struct action< custom_dice_id > {
         auto namedDice = &found->second;
 
         // generate named dice throw
-        r.pushNamed(namedDice);
+        r.pushNamed(namedDice, in.string_view());
     }
 };
 
@@ -133,24 +133,11 @@ struct action< custom_dice_id > {
 //
 
 template<>
-struct action< rm_aggregate > {
+struct action< ResolvingMethods > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        r.latestFDT()->setResolvingMethod(FacedDiceThrow::GroupingMethod::Aggregate);
-    }
-};
-template<>
-struct action< rm_lowest_value > {
-    template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        r.latestFDT()->setResolvingMethod(FacedDiceThrow::GroupingMethod::LowestValue);
-    }
-};
-template<>
-struct action< rm_highest_value > {
-    template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
-        r.latestFDT()->setResolvingMethod(FacedDiceThrow::GroupingMethod::HighestValue);
+        auto method = ResolvingMethods::get(in.string());
+        r.defineResolvingMethodOnLatestDiceThrow(method, in.string_view());
     }
 };
 

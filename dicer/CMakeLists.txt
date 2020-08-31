@@ -23,11 +23,13 @@ target_sources(dicer PRIVATE
     include/dicer/ThrowCommand.hpp
     include/dicer/ThrowCommandExtract.hpp
     include/dicer/ThrowCommandStack.hpp
-    include/dicer/IResolvable.hpp
+    include/dicer/IDescriptible.hpp
     include/dicer/Resolvable.hpp
     include/dicer/Resolver.hpp
     include/dicer/Parser.hpp
     include/dicer/ThrowRepartition.hpp
     include/dicer/NamedDice.hpp
     include/dicer/Contexts.hpp
+    include/dicer/CommandDescriptorHelper.hpp
+    include/dicer/DiceThrowResolvingMethod.hpp
 )

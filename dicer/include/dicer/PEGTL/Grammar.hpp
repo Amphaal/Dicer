@@ -27,6 +27,7 @@
 
 #include "dicer/ThrowCommand.hpp"
 #include "dicer/ThrowCommandExtract.hpp"
+#include "dicer/DiceThrowResolvingMethod.hpp"
 
 // Base template : https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/calculator.cpp
 
@@ -112,15 +113,6 @@ struct expression;
 struct bracket : if_must< one< '(' >, expression, one< ')' > > {};
 
 //
-// resolving method for dices
-//
-
-struct rm_aggregate : one< '+' > {};
-struct rm_lowest_value : string<'m', 'i', 'n'> {};
-struct rm_highest_value : string<'m', 'a', 'x'> {};
-    struct resolving_method : opt< sor<rm_aggregate, rm_lowest_value, rm_highest_value> > {};
-
-//
 // composition of a dice throw
 //
 
@@ -131,7 +123,7 @@ struct faced_dice : sor<faces_value, bracket> {};
 struct faces_part_of_throw : sor<custom_dice_id, faced_dice> {};
 struct dice_separator : one< 'd', 'D' > {};
 struct how_many : plus< digit > {};
-    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, resolving_method> {};
+    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, Dicer::ResolvingMethods> {};
 
 //
 // macro

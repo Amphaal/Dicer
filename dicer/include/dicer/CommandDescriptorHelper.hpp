@@ -21,36 +21,38 @@
 
 #include <string>
 
-#include "Contexts.hpp"
+#include "NamedDice.hpp"
+#include "DiceThrowResolvingMethod.hpp"
 
 namespace Dicer {
 
-class ThrowCommand {
+// TODO(amphaal) add descriptors for macros
+
+class CommandDescriptorHelper {
  public:
-    ThrowCommand(const GameContext* gContext, const PlayerContext* pContext, std::string signature) : _gContext(gContext), _pContext(pContext) {
-        if(!gContext) throw std::logic_error("Empty game context provided to throw command");
-        if(!pContext) throw std::logic_error("Empty player context provided to throw command");
-
-        // assign
-        _signature = signature;
+    CommandDescriptorHelper(const std::string_view &sv, const NamedDice* nd) : CommandDescriptorHelper(sv) {
+        assert(nd);
+        _descr = nd->description();
     }
 
-    const std::string& signature() const {
-        return _signature;
+    CommandDescriptorHelper(const std::string_view &sv, const DiceThrowResolvingMethod* dtrm) : CommandDescriptorHelper(sv) {
+        assert(dtrm);
+        _descr = dtrm->description();
     }
 
-    const GameContext* gameContext() const {
-        return _gContext;
+    const std::string_view& whereInCommand() const {
+        return _sv;
     }
 
-    const PlayerContext* playerContext() const {
-        return _pContext;
+    const std::string& description() const {
+        return _descr;
     }
 
  private:
-    const GameContext* _gContext = nullptr;
-    const PlayerContext* _pContext = nullptr;
-    std::string _signature;
+    explicit CommandDescriptorHelper(const std::string_view &sv) : _sv(sv) {}
+
+    std::string_view _sv;
+    std::string _descr;
 };
 
 }  // namespace Dicer
