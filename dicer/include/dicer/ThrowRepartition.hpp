@@ -116,7 +116,7 @@ class ThrowsRepartition {
             }
         }
 
-        throw std::logic_error("Out of bounds WSR");
+        throw std::runtime_error("Out of bounds WSR");
     }
 };
 

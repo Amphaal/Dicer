@@ -69,4 +69,18 @@ class DiceFacesOutOfRange : public DicerException {
     double _outOfRange;
 };
 
+class MacroNotFound : public DicerException {
+ public:
+    explicit MacroNotFound(const std::string &macroName) : _macroName(macroName) {
+        _setErrorMessage(std::string("Macro named [") + _macroName + "] could not be found");
+    }
+
+    std::string macroName() const {
+        return _macroName;
+    }
+
+ private:
+    std::string _macroName;
+};
+
 }  // namespace Dicer

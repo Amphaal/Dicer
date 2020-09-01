@@ -42,7 +42,7 @@ struct action< macro > {
     template< typename ActionInput >
     static void apply( const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // TODO(amphaal) macro calls and nested, check for non recursiveness
-        throw std::logic_error("Unimplemented macro functionality");
+        throw MacroNotFound(in.string());
     }
 };
 

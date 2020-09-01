@@ -24,10 +24,6 @@
 #include "dicer/PEGTL/_.hpp"
 #include "specialized/TestUtility.hpp"
 
-TEST_CASE("temp", "[Parser]") {
-    TestUtility::parse("D4");
-}
-
 TEST_CASE("Must fail tests - how many parts", "[Parser]") {
     // oor int
     REQUIRE_THROWS_AS(TestUtility::parse("2000000000000000d7"), std::out_of_range);
@@ -48,4 +44,5 @@ TEST_CASE("Must fail tests - how many parts", "[Parser]") {
 
     // missing parts
     REQUIRE_THROWS_AS(TestUtility::parse("3d"), tao::pegtl::parse_error);
+    REQUIRE_THROWS_AS(TestUtility::parse("D4"), Dicer::MacroNotFound);  // parsed as macro not found
 }
