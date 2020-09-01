@@ -89,7 +89,7 @@ class LowestValueRM : public DiceThrowResolvingMethod, public tao::pegtl::string
     }
 };
 
-class ResolvingMethods : public opt<sor< AggregateRM, LowestValueRM, HighestValueRM >> {
+class ResolvingMethods : public sor< AggregateRM, LowestValueRM, HighestValueRM > {
  public:
     static DiceThrowResolvingMethod* get(const std::string &funcName) {
         if(!_self) _self = new ResolvingMethods;
@@ -97,7 +97,7 @@ class ResolvingMethods : public opt<sor< AggregateRM, LowestValueRM, HighestValu
         assert(found);
         return found;
     }
-    
+
     ~ResolvingMethods() {
         for(auto method : _methods) {
             delete method;

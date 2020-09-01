@@ -24,28 +24,28 @@
 #include "dicer/PEGTL/_.hpp"
 #include "specialized/TestUtility.hpp"
 
-// TEST_CASE("Must fail tests - how many parts", "[Parser]") {
-//     // command throw
-//     REQUIRE(TestParser::parse("0d6").hasFailed());
-//     REQUIRE(TestParser::parse("1d1").hasFailed());
-//     REQUIRE(TestParser::parse("-1d4").hasFailed());
-//     REQUIRE(TestParser::parse("1D0").hasFailed());
-//     REQUIRE(TestParser::parse("1D-7").hasFailed());
-//     REQUIRE(TestParser::parse("3d").hasFailed());
-//     REQUIRE(TestParser::parse("D4").hasFailed());
-//     REQUIRE(TestParser::parse("").hasFailed());
-//     REQUIRE(TestParser::parse("  ").hasFailed());
-// }
-
-TEST_CASE("+ Resolution next to a + operator", "[Parser]") {
-    auto extract2 = TestUtility::parse("4d8+  +  1");
-    REQUIRE_FALSE(extract2.error());
-    std::cout << TestUtility::resolve(extract2) << std::endl;
+TEST_CASE("temp", "[Parser]") {
+    TestUtility::parse("D4");
 }
 
-// 2d6+/2
+TEST_CASE("Must fail tests - how many parts", "[Parser]") {
+    // oor int
+    REQUIRE_THROWS_AS(TestUtility::parse("2000000000000000d7"), std::out_of_range);
 
-// TEST_CASE("+ Resolution next to a + operator", "[Parser]") {
-//     auto extract = TestParser::parse("4d8++1");
-//     REQUIRE_FALSE(extract.error());
-// }
+    // no negative value on how many
+    REQUIRE_THROWS_AS(TestUtility::parse("-1d6"), Dicer::HowManyOutOfRange);
+
+    // no excessive values on how many
+    REQUIRE_THROWS_AS(TestUtility::parse(std::to_string(Dicer::MAXIMUM_DICE_HOW_MANY + 1) + "d6"), Dicer::HowManyOutOfRange);
+
+    // dice face should not be too low
+    REQUIRE_THROWS_AS(TestUtility::parse("1d1"), Dicer::DiceFacesOutOfRange);
+    REQUIRE_THROWS_AS(TestUtility::parse("1d-7"), Dicer::DiceFacesOutOfRange);
+
+    // empty is meaningless
+    REQUIRE_THROWS_AS(TestUtility::parse(""), tao::pegtl::parse_error);
+    REQUIRE_THROWS_AS(TestUtility::parse("  "), tao::pegtl::parse_error);
+
+    // missing parts
+    REQUIRE_THROWS_AS(TestUtility::parse("3d"), tao::pegtl::parse_error);
+}

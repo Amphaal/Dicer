@@ -50,17 +50,6 @@ class ThrowCommandExtract {
         _stacks.emplace_back(&_master);
     }
 
-    void setError(const std::string &error) {
-        _errorString = error;
-    }
-
-    const char * error() const {
-        return _errorString.empty() ? nullptr : _errorString.c_str();
-    }
-    bool hasFailed() const {
-        return _errorString.size();
-    }
-
     const Dicer::ThrowCommand& command() const {
         return _command;
     }
@@ -92,8 +81,8 @@ class ThrowCommandExtract {
         auto dt = dynamic_cast<DiceThrow*>(t);
         if(dt) _bufferHowMany = 0;
     }
-    void pushSimpleFaced(DiceFace faces) {
-        auto fdt = new FacedDiceThrow(_bufferHowMany, faces);
+    void pushSimpleFaced(int parsedFace) {
+        auto fdt = new FacedDiceThrow(_bufferHowMany, parsedFace);
         _latestFDT = fdt;
         push(fdt);
     }
@@ -115,8 +104,7 @@ class ThrowCommandExtract {
         _stacks.pop_back();
     }
 
-    void setHowManyBuffer(unsigned int howMany) {
-        assert(!_bufferHowMany);
+    void setHowManyBuffer(int howMany) {
         _bufferHowMany = howMany;
     }
 
@@ -137,9 +125,8 @@ class ThrowCommandExtract {
     Dicer::ThrowCommand _command;
     std::vector<CommandDescriptorHelper> _tracker;
     std::vector<ThrowCommandStack*> _stacks;
-    unsigned int _bufferHowMany = 0;
+    int _bufferHowMany = 0;
     FacedDiceThrow* _latestFDT = nullptr;
-    std::string _errorString;
     ThrowCommandStack _master;
 };
 

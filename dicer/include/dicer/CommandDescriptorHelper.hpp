@@ -26,7 +26,7 @@
 
 namespace Dicer {
 
-// TODO(amphaal) add descriptors for macros
+// TODO(amphaal) add more descriptors for macros
 
 class CommandDescriptorHelper {
  public:

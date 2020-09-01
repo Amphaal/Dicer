@@ -30,7 +30,7 @@ namespace Dicer {
 
 class NamedDiceThrow : public DiceThrow, public Resolvable<std::vector<std::string>> {
  public:
-    explicit NamedDiceThrow(unsigned int howMany, const NamedDice* associatedNamedDice) : DiceThrow(howMany) {
+    explicit NamedDiceThrow(int howMany, const NamedDice* associatedNamedDice) : DiceThrow(howMany) {
         _setNamedDice(associatedNamedDice);
     }
 

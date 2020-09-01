@@ -102,7 +102,8 @@ struct infix {
 
 // A number is a non-empty sequence of digits preceded by an optional sign.
 
-struct number : plus< digit > {};
+struct _number : seq< opt< one< '+', '-' > >, plus< digit > > {};
+struct number : _number {};
 
 struct expression;
 
@@ -115,14 +116,13 @@ struct bracket : if_must< one< '(' >, expression, one< ')' > > {};
 // composition of a dice throw
 //
 
-
 struct custom_dice_id : plus< alpha > {};
-struct faces_value : plus< digit > {};
+struct faces_value : _number {};
 struct faced_dice : sor<faces_value, bracket> {};
 struct faces_part_of_throw : sor<custom_dice_id, faced_dice> {};
 struct dice_separator : one< 'd', 'D' > {};
-struct how_many : plus< digit > {};
-    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, Dicer::ResolvingMethods> {};
+struct how_many : _number {};
+    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, opt<Dicer::ResolvingMethods>> {};
 
 //
 // macro

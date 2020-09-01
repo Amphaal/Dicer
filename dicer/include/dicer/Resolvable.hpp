@@ -86,6 +86,10 @@ class ResolvableNumber : public ResolvableBase {
         return _strResolvedSingleValue();
     }
 
+    double value() const {
+        return _resolvedSingleValue;
+    }
+
     bool isSingleValueResolvable() const override {
         return true;
     }

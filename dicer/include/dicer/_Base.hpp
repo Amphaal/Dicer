@@ -19,15 +19,16 @@
 
 #pragma once
 
-// TODO(amphaal) typed execeptions instead of logic_error for tests
-
 namespace Dicer {
+
+// TODO syntaxic helper
 
 using DiceFace = unsigned int;
 using DiceFaceResult = unsigned int;
+static unsigned int MAXIMUM_DICE_HOW_MANY = 16;
 
 struct WeightedSeedResult {
-    unsigned int _v;
+    int _v;
 };
 
 }  // namespace Dicer

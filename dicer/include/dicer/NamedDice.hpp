@@ -20,7 +20,7 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <vector>
 #include <stdexcept>
 
 #include "_Base.hpp"
@@ -29,7 +29,7 @@ namespace Dicer {
 
 class NamedDice {
  public:
-    NamedDice(const std::string &diceName, const std::string &description, std::map<DiceFaceResult, std::string> resultByName) :
+    NamedDice(const std::string &diceName, const std::string &description, std::vector<std::string> resultByName) :
         _diceName(diceName), _description(description), _resultByName(resultByName) {
         if(!diceName.size()) throw std::logic_error("Named dice has no name");
         if(!description.size()) throw std::logic_error("Named dice has no description");
@@ -49,15 +49,15 @@ class NamedDice {
     }
 
     std::string getFaceName(DiceFaceResult result) const {
-        auto found = _resultByName.find(result);
-        if(found == _resultByName.end()) throw std::logic_error("Could not find associated name to value [" + std::to_string(result) + "] within [" + diceName() + "] dice");
-        return found->second;
+        auto size = _resultByName.size();
+        if(result > size) throw std::logic_error("Could not find associated name to value [" + std::to_string(result) + "] within [" + diceName() + "] dice");
+        return _resultByName.at(size - 1);
     }
 
  private:
     std::string _diceName;
     std::string _description;
-    std::map<DiceFaceResult, std::string> _resultByName;
+    std::vector<std::string> _resultByName;
 };
 
 }  // namespace Dicer

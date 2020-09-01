@@ -24,14 +24,14 @@
 #include <string>
 
 #include "_Base.hpp"
-
+#include "Exceptions.hpp"
 #include "Resolvable.hpp"
 
 namespace Dicer {
 
 class DiceThrow {
  public:
-    explicit DiceThrow(unsigned int howMany) {
+    explicit DiceThrow(int howMany) {
         _setHowMany(howMany);
     }
 
@@ -92,8 +92,8 @@ class DiceThrow {
  private:
     unsigned int _howMany = 0;
 
-    void _setHowMany(unsigned int howMany) {
-        if (!howMany) throw std::logic_error("Number of dices to be thrown should be > 0");
+    void _setHowMany(int howMany) {
+        if (howMany < 0 || howMany > MAXIMUM_DICE_HOW_MANY) throw HowManyOutOfRange(howMany);
         _howMany = howMany;
     }
 };

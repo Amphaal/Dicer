@@ -24,6 +24,7 @@
 #include <string>
 #include <algorithm>
 
+#include "Exceptions.hpp"
 #include "DiceThrow.hpp"
 #include "ThrowCommandStack.hpp"
 #include "DiceThrowResolvingMethod.hpp"
@@ -32,12 +33,12 @@ namespace Dicer {
 
 class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceResult>> {
  public:
-    explicit FacedDiceThrow(unsigned int howMany, ThrowCommandStack* stack) : DiceThrow(howMany) {
+    explicit FacedDiceThrow(int howMany, ThrowCommandStack* stack) : DiceThrow(howMany) {
         _setFacesResolvable(stack);
     }
 
-    FacedDiceThrow(unsigned int howMany, DiceFace faces) : DiceThrow(howMany) {
-        _setFacesResolvable(new ResolvableNumber(faces));
+    FacedDiceThrow(int howMany, int parsedFaces) : DiceThrow(howMany) {
+        _setFacesResolvable(new ResolvableNumber(parsedFaces));
     }
 
     bool isSingleValueResolvable() const override {
@@ -91,6 +92,12 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     DiceThrowResolvingMethod* _rm = nullptr;
 
     void _setFacesResolvable(ResolvableBase* resolvable) {
+        // can be "resolved"
+        if (auto number = dynamic_cast<ResolvableNumber*>(resolvable)) {
+            auto val = number->value();
+            if (val <= 1) throw DiceFacesOutOfRange(val);
+        }
+
         _facesResolvable = resolvable;
     }
 
@@ -99,7 +106,9 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
         _facesResolvable->resolve(gContext, pContext);
         assert(_facesResolvable->isSingleValueResolvable());
         auto faces = _facesResolvable->resolvedSingleValue();
-        if (faces <= 1) throw std::logic_error("A dice face must be > 1");
+
+        if (faces <= 1) throw DiceFacesOutOfRange(faces);
+
         return faces;
     }
 

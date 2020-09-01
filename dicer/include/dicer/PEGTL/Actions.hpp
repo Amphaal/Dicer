@@ -51,7 +51,7 @@ struct action< number > {
     template< typename ActionInput >
     static void apply( const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // cast to double
-        double val = atof(in.string().c_str());
+        double val = std::atof(in.string().c_str());
 
         // push number
         r.pushNumber(val);
@@ -83,7 +83,7 @@ template<>
 struct action< how_many > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommandExtract& r) {
-        auto howMany = stoi(in.string());
+        auto howMany = std::stoi(in.string());
         r.setHowManyBuffer(howMany);
     }
 };
@@ -97,7 +97,7 @@ struct action< faces_value > {
     template< typename ActionInput >
     static void apply(const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // get in situ numeric dice face value
-        auto faces = stoi(in.string());
+        auto faces = std::stoi(in.string());
         r.pushSimpleFaced(faces);
     }
 };

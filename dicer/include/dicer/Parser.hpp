@@ -43,15 +43,7 @@ class Parser {
 
         // parse
         tao::pegtl::memory_input in(extract.command().signature(), "");
-        try {
-            pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, extract);
-        } catch (const std::logic_error &e) {
-            extract.setError(e.what());
-        } catch (tao::pegtl::parse_error &e) {
-            extract.setError(e.what());
-        } catch (...) {
-            extract.setError("Unhandled error");
-        }
+        pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, extract);
 
         return extract;
     }

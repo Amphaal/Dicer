@@ -32,4 +32,5 @@ target_sources(dicer PRIVATE
     include/dicer/Contexts.hpp
     include/dicer/CommandDescriptorHelper.hpp
     include/dicer/DiceThrowResolvingMethod.hpp
+    include/dicer/Exceptions.hpp
 )
