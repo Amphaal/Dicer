@@ -25,7 +25,6 @@
 
 #include <tao/pegtl.hpp>
 
-#include "dicer/ThrowCommand.hpp"
 #include "dicer/ThrowCommandExtract.hpp"
 #include "dicer/DiceThrowResolvingMethod.hpp"
 
@@ -66,7 +65,7 @@ struct infix {
                 class Control,
                 typename ParseInput,
                 typename... States >
-    static bool match( ParseInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandExtract& r, States&&... /*unused*/ ) {
+    static bool match( ParseInput& in, Dicer::ThrowCommandExtract& r, States&&... /*unused*/ ) {
         // Look for the longest match of the input against the operators in the operator map.
 
         return match( in, r, std::string() );

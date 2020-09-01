@@ -34,20 +34,17 @@ namespace Dicer {
 class Parser {
  public:
     static Dicer::ThrowCommandExtract parseThrowCommand(const Dicer::GameContext* gContext, const Dicer::PlayerContext* pContext, const std::string &textCommand) {
-        // throw command
-        Dicer::ThrowCommand command {
+        // extraction
+        Dicer::ThrowCommandExtract extract {
             gContext,
             pContext,
             textCommand
         };
 
-        // extraction
-        Dicer::ThrowCommandExtract extract;
-
         // parse
-        tao::pegtl::memory_input in(command.signature(), "");
+        tao::pegtl::memory_input in(extract.command().signature(), "");
         try {
-            pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, command, extract);
+            pegtl::parse<Dicer::PEGTL::grammar, Dicer::PEGTL::action>(in, extract);
         } catch (const std::logic_error &e) {
             extract.setError(e.what());
         } catch (tao::pegtl::parse_error &e) {

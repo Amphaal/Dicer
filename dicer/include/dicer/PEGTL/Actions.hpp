@@ -40,7 +40,7 @@ struct action
 template<>
 struct action< macro > {
     template< typename ActionInput >
-    static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply( const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // TODO(amphaal) macro calls and nested, check for non recursiveness
         throw std::logic_error("Unimplemented macro functionality");
     }
@@ -49,7 +49,7 @@ struct action< macro > {
 template<>
 struct action< number > {
     template< typename ActionInput >
-    static void apply( const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply( const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // cast to double
         double val = atof(in.string().c_str());
 
@@ -64,13 +64,13 @@ struct action< number > {
 
 template<>
 struct action< one< '(' > > {
-    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply0(Dicer::ThrowCommandExtract& r) {
         r.openStack();
     }
 };
 template<>
 struct action< one< ')' > > {
-    static void apply0(Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply0(Dicer::ThrowCommandExtract& r) {
         r.closeStack();
     }
 };
@@ -82,7 +82,7 @@ struct action< one< ')' > > {
 template<>
 struct action< how_many > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         auto howMany = stoi(in.string());
         r.setHowManyBuffer(howMany);
     }
@@ -95,7 +95,7 @@ struct action< how_many > {
 template<>
 struct action< faces_value > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // get in situ numeric dice face value
         auto faces = stoi(in.string());
         r.pushSimpleFaced(faces);
@@ -109,10 +109,10 @@ struct action< faces_value > {
 template<>
 struct action< custom_dice_id > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& c, Dicer::ThrowCommandExtract& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         // search for associated Named Dice
         auto custom_dice_name = in.string();
-        auto &namedDices = c.gameContext()->namedDices;
+        auto &namedDices = r.command().gameContext()->namedDices;
         auto found = namedDices.find(custom_dice_name);
 
         // should be found
@@ -135,7 +135,7 @@ struct action< custom_dice_id > {
 template<>
 struct action< ResolvingMethods > {
     template< typename ActionInput >
-    static void apply(const ActionInput& in, Dicer::ThrowCommand& /*unused*/, Dicer::ThrowCommandExtract& r) {
+    static void apply(const ActionInput& in, Dicer::ThrowCommandExtract& r) {
         auto method = ResolvingMethods::get(in.string());
         r.defineResolvingMethodOnLatestDiceThrow(method, in.string_view());
     }

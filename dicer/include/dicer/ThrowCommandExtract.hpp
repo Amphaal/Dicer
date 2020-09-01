@@ -28,6 +28,7 @@
 #include "FacedDiceThrow.hpp"
 #include "NamedDiceThrow.hpp"
 #include "CommandDescriptorHelper.hpp"
+#include "ThrowCommand.hpp"
 
 namespace Dicer {
 
@@ -45,7 +46,7 @@ class ThrowCommandExtract {
  public:
     friend class Resolver;
 
-    ThrowCommandExtract() {
+    ThrowCommandExtract(const GameContext* gContext, const PlayerContext* pContext, std::string signature) : _command(gContext, pContext, signature) {
         _stacks.emplace_back(&_master);
     }
 
@@ -58,6 +59,10 @@ class ThrowCommandExtract {
     }
     bool hasFailed() const {
         return _errorString.size();
+    }
+
+    const Dicer::ThrowCommand& command() const {
+        return _command;
     }
 
     //
@@ -129,6 +134,7 @@ class ThrowCommandExtract {
     //
 
  private:
+    Dicer::ThrowCommand _command;
     std::vector<CommandDescriptorHelper> _tracker;
     std::vector<ThrowCommandStack*> _stacks;
     unsigned int _bufferHowMany = 0;
