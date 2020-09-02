@@ -1,0 +1,11 @@
+image: Visual Studio 2019
+platform: x64
+install:
+    - cd %APPVEYOR_BUILD_FOLDER%
+    - git submodule update --init --recursive
+build_script:
+    - cmake -GNinja -B_gen -H. -DPEGTL_BUILD_TESTS=OFF -DPEGTL_BUILD_EXAMPLES=OFF -DBUILD_TESTING=ON -DCMAKE_TOOLCHAIN_FILE=toolchains/clang-ci-appveyor.cmake
+    - ninja -C _gen
+test_script:
+    - cd _gen/bin
+    - dicer_tests.exe
