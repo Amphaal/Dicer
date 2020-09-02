@@ -116,13 +116,26 @@ struct bracket : if_must< one< '(' >, expression, one< ')' > > {};
 // composition of a dice throw
 //
 
+struct DiceThrowProject {
+    int howMany;
+    int faces;
+
+    template< typename ParseInput >
+    DiceThrowProject(const ParseInput&, const Dicer::ThrowCommandExtract&) {}
+
+    template< typename ParseInput >
+    void success( const ParseInput&, const Dicer::ThrowCommandExtract&) const {
+        auto i = true;
+    }
+};
+
 struct custom_dice_id : plus< alpha > {};
 struct faces_value : _number {};
 struct faced_dice : sor<faces_value, bracket> {};
 struct faces_part_of_throw : sor<custom_dice_id, faced_dice> {};
 struct dice_separator : one< 'd', 'D' > {};
 struct how_many : _number {};
-    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, opt<Dicer::ResolvingMethods>> {};
+    struct dice_throw : state<DiceThrowProject, how_many, dice_separator, faces_part_of_throw, opt<Dicer::ResolvingMethods>> {};
 
 //
 // macro

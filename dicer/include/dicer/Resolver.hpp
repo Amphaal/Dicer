@@ -30,6 +30,7 @@ namespace Dicer {
 
 struct Resolved {
     std::string asString;
+    bool isSingleResolvable = false;
     double result = -1;
 };
 
@@ -46,6 +47,7 @@ class Resolver {
 
         // if single value resolvable try to get it
         if(extract._master.isSingleValueResolvable()) {
+            r.isSingleResolvable = true;
             r.result = extract._master.resolvedSingleValue();
             descr += " => " + ResolvableBase::strResolved(r.result);
         }

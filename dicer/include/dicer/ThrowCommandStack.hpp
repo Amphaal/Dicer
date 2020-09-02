@@ -116,6 +116,14 @@ class ThrowCommandStack : public ResolvableBase {
         auto componentsCount = _components.size();
         assert( componentsCount % 2 != 0 );
 
+        // if only a single component, return asap
+        if (componentsCount == 1) {
+            auto resolvable = dynamic_cast<ResolvableBase*>(_components.back());
+            assert(resolvable);
+            _resolvedSingleValue = resolvable->resolvedSingleValue();
+            return;
+        }
+
         // try to handle order of operations through buffer...
         using ResultWithIndexesBR = std::pair<double, std::vector<int>>;
         std::map<int, ResultWithIndexesBR*> bufferPtrsByComponentPosition;

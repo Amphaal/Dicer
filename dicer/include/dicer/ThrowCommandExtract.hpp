@@ -65,7 +65,7 @@ class ThrowCommandExtract {
         _stacks.emplace_back(newStack);
 
         // if "how many" buffer is relevant, add faced dice throw
-        if(_bufferHowMany) {
+        if(_diceExpected) {
             auto fdt = new FacedDiceThrow(_bufferHowMany, newStack);
             push(fdt);
         }
@@ -77,9 +77,12 @@ class ThrowCommandExtract {
         assert( !_stacks.empty() );
         _stacks.back()->push( t );
 
-        // reset "how many" dice throw buffer
+        // reset dice throw expectancy
         auto dt = dynamic_cast<DiceThrow*>(t);
-        if(dt) _bufferHowMany = 0;
+        if(dt) {
+            _diceExpected = false;
+            _bufferHowMany = 0;
+        }
     }
     void pushSimpleFaced(int parsedFace) {
         auto fdt = new FacedDiceThrow(_bufferHowMany, parsedFace);
@@ -108,6 +111,10 @@ class ThrowCommandExtract {
         _bufferHowMany = howMany;
     }
 
+    void setDiceThrowExpected() {
+        _diceExpected = true;
+    }
+
     void defineResolvingMethodOnLatestDiceThrow(DiceThrowResolvingMethod *rm, const std::string_view &sv) {
         assert(_latestFDT);
         assert(rm);
@@ -125,9 +132,11 @@ class ThrowCommandExtract {
     Dicer::ThrowCommand _command;
     std::vector<CommandDescriptorHelper> _tracker;
     std::vector<ThrowCommandStack*> _stacks;
-    int _bufferHowMany = 0;
     FacedDiceThrow* _latestFDT = nullptr;
     ThrowCommandStack _master;
+
+    int _bufferHowMany = 0;
+    bool _diceExpected = false;
 };
 
 }  // namespace Dicer

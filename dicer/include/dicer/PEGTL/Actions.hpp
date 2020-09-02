@@ -88,6 +88,13 @@ struct action< how_many > {
     }
 };
 
+template<>
+struct action< dice_separator > {
+    static void apply0(Dicer::ThrowCommandExtract& r) {
+        r.setDiceThrowExpected();
+    }
+};
+
 //
 // Trying to build a faced dice throw...
 //
