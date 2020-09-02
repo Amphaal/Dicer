@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <list>
 
 #include "Resolvable.hpp"
 
@@ -116,9 +117,9 @@ class ThrowCommandStack : public ResolvableBase {
         assert( componentsCount % 2 != 0 );
 
         // try to handle order of operations through buffer...
-        std::map<int, double*> bufferPtrsByComponentPosition;
-        std::vector<double> resultsBuffer;
-        resultsBuffer.reserve((componentsCount - 1) / 2 + 1);
+        using ResultWithIndexesBR = std::pair<double, std::vector<int>>;
+        std::map<int, ResultWithIndexesBR*> bufferPtrsByComponentPosition;
+        std::list<ResultWithIndexesBR> resultsBuffer;  // use list since ResultWithIndexesBR size is variable
 
         // iterate through priorities of operator
         for (auto &i : _opsIndexByOrder) {
@@ -134,11 +135,11 @@ class ThrowCommandStack : public ResolvableBase {
                 assert(op);
 
                 // try to get mot recent results
-                auto findResolvedSingleValue = [&bufferPtrsByComponentPosition, this](int index) -> std::pair<bool, double> {
+                auto findResolvedSingleValue = [&bufferPtrsByComponentPosition, &resultsBuffer, this](int index) -> ResultWithIndexesBR* {
                     // find in buffer...
                     auto foundInBuffer = bufferPtrsByComponentPosition.find(index);
                     if(foundInBuffer != bufferPtrsByComponentPosition.end()) {
-                        return { true, *foundInBuffer->second };
+                        return foundInBuffer->second;
                     }
 
                     // or from resolvables
@@ -146,36 +147,34 @@ class ThrowCommandStack : public ResolvableBase {
                     assert(resolvable);
 
                     // get resolved
-                    return { false, resolvable->resolvedSingleValue() };
+                    auto resolved = resolvable->resolvedSingleValue();
+                    auto &ptr = resultsBuffer.emplace_back(resolved, std::vector<int>{index});
+                    return &ptr;
                 };
 
                 // get result
                 auto lPart = findResolvedSingleValue(lReslvblIndex);
                 auto rPart = findResolvedSingleValue(rReslvblIndex);
-                auto result = op->operate(lPart.second, rPart.second);
+                auto result = op->operate(lPart->first, rPart->first);
 
                 // add result to buffer
-                resultsBuffer.push_back(result);
-                auto ptr = &resultsBuffer.back();
+                resultsBuffer.push_back({result, {}});
+                auto resultPtr = &resultsBuffer.back();
+                auto &br_indexes = resultPtr->second;
 
-                // update backreferences values if any found
-                if (lPart.first) *bufferPtrsByComponentPosition[lReslvblIndex] = result;
-                if (rPart.first) *bufferPtrsByComponentPosition[rReslvblIndex] = result;
+                // push inherited indexes to result
+                br_indexes.insert(br_indexes.end(), lPart->second.begin(), lPart->second.end());
+                br_indexes.insert(br_indexes.end(), rPart->second.begin(), rPart->second.end());
 
-                // update value ptrs
-                bufferPtrsByComponentPosition[lReslvblIndex] = ptr;
-                bufferPtrsByComponentPosition[rReslvblIndex] = ptr;
-
-                //
-                for(auto q : resultsBuffer) {
-                    std::cout << "[" << q << "]";
+                // update backreferences values
+                for(auto i : br_indexes) {
+                    bufferPtrsByComponentPosition[i] = resultPtr;
                 }
-                std::cout << std::endl;
             }
         }
 
         // set resolved value as last value from buffer
-        _resolvedSingleValue = resultsBuffer.back();
+        _resolvedSingleValue = resultsBuffer.back().first;
     }
 };
 

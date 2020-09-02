@@ -60,7 +60,7 @@ TEST_CASE("Must fail tests - simple dice throw", "[Parser]") {
 
 TEST_CASE("Basic Maths", "[Resolver]") {
     // order of operators
-    // REQUIRE(TestUtility::pAndR("8 / 2 + 4 * 2 - 8").result == 4);
-    // REQUIRE(TestUtility::pAndR("8 + 2 * 4 - 2 / 8").result == 15.75);
-    TestUtility::pAndR("8 + 2 + 6 - 2 * 4 / 12 - 2 / 8 * 20 - 4");
+    REQUIRE(TestUtility::pAndR("8 / 2 + 4 * 2 - 8").result == 4);
+    REQUIRE(TestUtility::pAndR("8 + 2 * 4 - 2 / 8").result == 15.75);
+    REQUIRE(TestUtility::pAndR("8 + 2 + 6 - 2 * 4 / 12 - 2 / 8 * 20 - 4").result == Approx(6.3333));
 }
