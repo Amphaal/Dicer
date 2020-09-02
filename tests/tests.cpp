@@ -88,7 +88,7 @@ TEST_CASE("Dice Throw", "[Parser]") {
     // REQUIRE_FALSE(TestUtility::pAndR("3d6").isSingleResolvable);
 
     // trying every handled resolving methods
-    REQUIRE(TestUtility::pAndR("3d6+").isSingleResolvable);
+    // REQUIRE(TestUtility::pAndR("3d6+").isSingleResolvable);
     // REQUIRE(TestUtility::pAndR("3d6min").isSingleResolvable);
     // REQUIRE(TestUtility::pAndR("3d6max").isSingleResolvable);
 

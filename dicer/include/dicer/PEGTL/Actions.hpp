@@ -47,6 +47,15 @@ struct action< macro > {
 };
 
 template<>
+struct action< CommandOperators > {
+    template< typename ActionInput >
+    static void apply( const ActionInput& in, Dicer::ThrowCommandExtract& r) {
+        auto op = CommandOperators::get(in.string());
+        r.push(op);
+    }
+};
+
+template<>
 struct action< number > {
     template< typename ActionInput >
     static void apply( const ActionInput& in, Dicer::ThrowCommandExtract& r) {

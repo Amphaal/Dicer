@@ -28,6 +28,7 @@
 #include <list>
 
 #include "Resolvable.hpp"
+#include "PEGTL/Operators.hpp"
 
 namespace Dicer {
 
@@ -45,7 +46,7 @@ class ThrowCommandStack : public ResolvableBase {
     ThrowCommandStack() {}
     ~ThrowCommandStack() {
         for(auto descriptible : _components) {
-            auto op = dynamic_cast<ResolvableOperation*>(descriptible);
+            auto op = dynamic_cast<CommandOperator*>(descriptible);
             if(!op) delete descriptible;
         }
     }
@@ -59,9 +60,9 @@ class ThrowCommandStack : public ResolvableBase {
             auto isSVR = resolvable->isSingleValueResolvable();
             if(!isSVR) _isSingleValueResolvable = false;
 
-        } else if (auto op = dynamic_cast<ResolvableOperation*>(descriptible)) {
+        } else if (auto op = dynamic_cast<CommandOperator*>(descriptible)) {
             // if op, track it's order in the stack
-            _opsIndexByOrder[op->opOrder()].push_back(_components.size() - 1);
+            _opsIndexByOrder[op->order()].push_back(_components.size() - 1);
         }
     }
 
@@ -106,7 +107,7 @@ class ThrowCommandStack : public ResolvableBase {
  private:
     bool _isSingleValueResolvable = true;
     std::vector< IDescriptible* > _components;
-    std::map<ResolvableOperation::Order, std::vector<int>> _opsIndexByOrder;
+    std::map<CommandOperator::Order, std::vector<int>> _opsIndexByOrder;
 
     void _mayResolveOperations() {
         // skip if not single value resolvable
@@ -138,7 +139,7 @@ class ThrowCommandStack : public ResolvableBase {
                 auto opIndex = *y;
                 auto lReslvblIndex = opIndex - 1;
                 auto rReslvblIndex = opIndex + 1;
-                auto op = dynamic_cast<ResolvableOperation*>(_components.at(opIndex));
+                auto op = dynamic_cast<CommandOperator*>(_components.at(opIndex));
 
                 assert(op);
 

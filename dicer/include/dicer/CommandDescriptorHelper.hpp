@@ -22,7 +22,7 @@
 #include <string>
 
 #include "NamedDice.hpp"
-#include "DiceThrowResolvingMethod.hpp"
+#include "PEGTL/ResolvingMethods.hpp"
 
 namespace Dicer {
 

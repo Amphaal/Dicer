@@ -16,6 +16,7 @@ target_include_directories(dicer
 target_sources(dicer PRIVATE
     include/dicer/PEGTL/Actions.hpp
     include/dicer/PEGTL/Grammar.hpp
+    include/dicer/PEGTL/ResolvingMethods.hpp
     include/dicer/_Base.hpp
     include/dicer/DiceThrow.hpp
     include/dicer/FacedDiceThrow.hpp
@@ -31,6 +32,5 @@ target_sources(dicer PRIVATE
     include/dicer/NamedDice.hpp
     include/dicer/Contexts.hpp
     include/dicer/CommandDescriptorHelper.hpp
-    include/dicer/DiceThrowResolvingMethod.hpp
     include/dicer/Exceptions.hpp
 )

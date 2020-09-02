@@ -26,7 +26,8 @@
 #include <tao/pegtl.hpp>
 
 #include "dicer/ThrowCommandExtract.hpp"
-#include "dicer/DiceThrowResolvingMethod.hpp"
+#include "ResolvingMethods.hpp"
+#include "Operators.hpp"
 
 // Base template : https://github.com/taocpp/PEGTL/blob/master/src/example/pegtl/calculator.cpp
 
@@ -48,57 +49,6 @@ using namespace tao::pegtl;
 // words, everything that is space is ignored.
 
 struct ignored : space {};
-
-// Since the binary operators are taken from a runtime data structure
-// (rather than hard-coding them into the grammar), we need a custom
-// rule that attempts to match the input against the current map of
-// operators.
-
-struct infix {
-    using rule_t = ascii::any::rule_t;
-
-    template< apply_mode,
-                rewind_mode,
-                template< typename... >
-                class Action,
-                template< typename... >
-                class Control,
-                typename ParseInput,
-                typename... States >
-    static bool match( ParseInput& in, Dicer::ThrowCommandExtract& r, States&&... /*unused*/ ) {
-        // Look for the longest match of the input against the operators in the operator map.
-
-        return match( in, r, std::string() );
-    }
-
- private:
-    template< typename ParseInput >
-    static bool match( ParseInput& in, Dicer::ThrowCommandExtract& r, std::string t ) {
-        auto b = CommandOperators::get();
-
-        if( in.size( t.size() + 1 ) > t.size() ) {
-            t += in.peek_char( t.size() );
-            const auto i = b->lower_bound( t );
-
-            if( i != b->end() ) {
-                if( match( in, r, t ) ) {
-                    return true;
-                }
-
-                if( i->first == t ) {
-                    // While we are at it, this rule also performs the task of what would
-                    // usually be an associated action: To push the matched operator onto
-                    // the operator stack.
-                    r.push( i->second );
-                    in.bump( t.size() );
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-};
 
 // A number is a non-empty sequence of digits preceded by an optional sign.
 
@@ -135,7 +85,7 @@ struct faced_dice : sor<faces_value, bracket> {};
 struct faces_part_of_throw : sor<custom_dice_id, faced_dice> {};
 struct dice_separator : one< 'd', 'D' > {};
 struct how_many : _number {};
-    struct dice_throw : state<DiceThrowProject, how_many, dice_separator, faces_part_of_throw, opt<Dicer::ResolvingMethods>> {};
+    struct dice_throw : seq<how_many, dice_separator, faces_part_of_throw, opt<Dicer::ResolvingMethods>> {};
 
 //
 // macro
@@ -152,7 +102,7 @@ struct atomic : sor< bracket, dice_throw, number, macro > {};
 // of atomic expressions is separated by an infix operator and we allow
 // the rule ignored as padding (before and after every single expression).
 
-struct expression : list< atomic, infix, ignored > {};
+struct expression : list< atomic, Dicer::CommandOperators, ignored > {};
 
 // The top-level grammar allows one expression and then expects eof.
 

@@ -27,7 +27,7 @@
 
 #include <tao/pegtl.hpp>
 
-#include "_Base.hpp"
+#include "dicer/_Base.hpp"
 
 namespace Dicer {
 

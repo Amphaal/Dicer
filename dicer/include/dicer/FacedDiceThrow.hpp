@@ -27,7 +27,7 @@
 #include "Exceptions.hpp"
 #include "DiceThrow.hpp"
 #include "ThrowCommandStack.hpp"
-#include "DiceThrowResolvingMethod.hpp"
+#include "PEGTL/ResolvingMethods.hpp"
 
 namespace Dicer {
 
