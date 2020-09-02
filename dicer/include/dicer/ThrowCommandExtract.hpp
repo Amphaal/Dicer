@@ -61,14 +61,17 @@ class ThrowCommandExtract {
     // open a dice throw stack
     void openStack() {
         auto newStack = new ThrowCommandStack;
-        _stacks.back()->push(newStack);
-        _stacks.emplace_back(newStack);
 
-        // if "how many" buffer is relevant, add faced dice throw
         if(_diceExpected) {
+            // if dice is expected, add faced dice throw
             auto fdt = new FacedDiceThrow(_bufferHowMany, newStack);
             push(fdt);
+        } else {
+            // else, classic push
+            push(newStack);
         }
+
+        _stacks.emplace_back(newStack);
     }
 
     // push into current dice throw stack

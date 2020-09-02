@@ -55,12 +55,7 @@ class ThrowCommandStack : public ResolvableBase {
         // push any component
         _components.push_back(descriptible);
 
-        if (auto resolvable = dynamic_cast<ResolvableBase*>(descriptible)) {
-            // if resolvable, check if single value resolvable
-            auto isSVR = resolvable->isSingleValueResolvable();
-            if(!isSVR) _isSingleValueResolvable = false;
-
-        } else if (auto op = dynamic_cast<CommandOperator*>(descriptible)) {
+        if (auto op = dynamic_cast<CommandOperator*>(descriptible)) {
             // if op, track it's order in the stack
             _opsIndexByOrder[op->order()].push_back(_components.size() - 1);
         }
@@ -74,6 +69,7 @@ class ThrowCommandStack : public ResolvableBase {
 
         // assert
         assert( componentsCount % 2 != 0 );
+        out += "(";
 
         // populate first
         for(auto descriptible : _components) {
@@ -81,6 +77,7 @@ class ThrowCommandStack : public ResolvableBase {
         }
 
         out.erase(out.size() - 1, 1);
+        out += ")";
 
         return out;
     }
@@ -101,17 +98,24 @@ class ThrowCommandStack : public ResolvableBase {
     }
 
     bool isSingleValueResolvable() const override {
-        return _isSingleValueResolvable;
+        for(auto descriptible : _components) {
+            if (auto resolvable = dynamic_cast<ResolvableBase*>(descriptible)) {
+                // if resolvable, check if single value resolvable
+                auto isSVR = resolvable->isSingleValueResolvable();
+                if(!isSVR) return false;
+            }
+        }
+
+        return true;
     }
 
  private:
-    bool _isSingleValueResolvable = true;
     std::vector< IDescriptible* > _components;
     std::map<CommandOperator::Order, std::vector<int>> _opsIndexByOrder;
 
     void _mayResolveOperations() {
         // skip if not single value resolvable
-        if (!_isSingleValueResolvable) return;
+        if (!isSingleValueResolvable()) return;
 
         // assert, make sure components are odd
         auto componentsCount = _components.size();

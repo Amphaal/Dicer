@@ -32,6 +32,10 @@ struct Resolved {
     std::string asString;
     bool isSingleResolvable = false;
     double result = -1;
+
+    bool between(double val1, double val2) const {
+        return result >= val1 && result <= val2;
+    }
 };
 
 class Resolver {
@@ -52,7 +56,7 @@ class Resolver {
             descr += " => " + ResolvableBase::strResolved(r.result);
         }
 
-        r.asString = descr;
+        r.asString = extract.command().signature() + " : " + descr;
 
         return r;
     }

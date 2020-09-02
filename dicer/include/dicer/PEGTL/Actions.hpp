@@ -21,6 +21,8 @@
 
 #include <string>
 
+#include <tao/pegtl/contrib/control_action.hpp>
+
 #include "./Grammar.hpp"
 
 #include "dicer/NamedDiceThrow.hpp"

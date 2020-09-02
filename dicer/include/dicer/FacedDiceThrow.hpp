@@ -116,8 +116,15 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
     void _mightResolveSingleValue() {
-        if(!_rm) return;
-        _resolvedSingleValue = _rm->resolve(_resolved);
+        if(!isSingleValueResolvable()) return;
+
+        if(_rm) {
+            _resolvedSingleValue = _rm->resolve(_resolved);
+        } else if(howMany() == 1) {
+            _resolvedSingleValue = _resolved.front();
+        } else {
+            throw std::logic_error("Should not happen");
+        }
     }
 };
 
