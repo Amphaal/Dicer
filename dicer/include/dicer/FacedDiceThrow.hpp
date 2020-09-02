@@ -92,7 +92,7 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     DiceThrowResolvingMethod* _rm = nullptr;
 
     void _setFacesResolvable(ResolvableBase* resolvable) {
-        // can be "resolved"
+        // can be safely "resolved" if number
         if (auto number = dynamic_cast<ResolvableNumber*>(resolvable)) {
             auto val = number->value();
             if (val <= 1) throw DiceFacesOutOfRange(val);
@@ -102,8 +102,11 @@ class FacedDiceThrow : public DiceThrow, public Resolvable<std::vector<DiceFaceR
     }
 
     DiceFace _resolveFaces(GameContext *gContext, PlayerContext* pContext) override {
+        // resolve
         assert(_facesResolvable);
         _facesResolvable->resolve(gContext, pContext);
+
+        // get single value resolved
         assert(_facesResolvable->isSingleValueResolvable());
         auto faces = _facesResolvable->resolvedSingleValue();
 

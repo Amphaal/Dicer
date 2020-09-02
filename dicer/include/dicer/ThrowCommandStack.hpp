@@ -24,6 +24,7 @@
 #include <cassert>
 #include <string>
 #include <vector>
+#include <utility>
 
 #include "Resolvable.hpp"
 
@@ -48,23 +49,29 @@ class ThrowCommandStack : public ResolvableBase {
         }
     }
 
-    void push(IDescriptible* rslvbl) {
-        _components.push_back(rslvbl);
+    void push(IDescriptible* descriptible) {
+        // push any component
+        _components.push_back(descriptible);
 
-        auto op = dynamic_cast<ResolvableOperation*>(rslvbl);
-        if (!op) return;
+        if (auto resolvable = dynamic_cast<ResolvableBase*>(descriptible)) {
+            // if resolvable, check if single value resolvable
+            auto isSVR = resolvable->isSingleValueResolvable();
+            if(!isSVR) _isSingleValueResolvable = false;
 
-        _opsIndexByOrder[op->opOrder()].push_back(_components.size() - 1);
+        } else if (auto op = dynamic_cast<ResolvableOperation*>(descriptible)) {
+            // if op, track it's order in the stack
+            _opsIndexByOrder[op->opOrder()].push_back(_components.size() - 1);
+        }
     }
 
     std::string description() const override {
         // return empty
         std::string out;
-        auto rslvblsCount = _components.size();
-        if(!rslvblsCount) return out;
+        auto componentsCount = _components.size();
+        if(!componentsCount) return out;
 
         // assert
-        assert( rslvblsCount % 2 != 0 );
+        assert( componentsCount % 2 != 0 );
 
         // populate first
         for(auto descriptible : _components) {
@@ -77,6 +84,7 @@ class ThrowCommandStack : public ResolvableBase {
     }
 
     void resolve(GameContext *gContext, PlayerContext* pContext) override {
+        // resolve inner components
         for(auto descriptible : _components) {
             auto resolvable = dynamic_cast<ResolvableBase*>(descriptible);
             if(!resolvable) continue;
@@ -84,24 +92,91 @@ class ThrowCommandStack : public ResolvableBase {
             resolvable->resolve(gContext, pContext);
         }
 
+        // then resolve stack expression
+        _mayResolveOperations();
+
         ResolvableBase::resolve(gContext, pContext);
     }
 
     bool isSingleValueResolvable() const override {
-        for(auto descriptible : _components) {
-            auto resolvable = dynamic_cast<ResolvableBase*>(descriptible);
-            if(!resolvable) continue;
-
-            auto isSVR = resolvable->isSingleValueResolvable();
-            if(!isSVR) return false;
-        }
-
-        return true;
+        return _isSingleValueResolvable;
     }
 
  private:
+    bool _isSingleValueResolvable = true;
     std::vector< IDescriptible* > _components;
     std::map<ResolvableOperation::Order, std::vector<int>> _opsIndexByOrder;
+
+    void _mayResolveOperations() {
+        // skip if not single value resolvable
+        if (!_isSingleValueResolvable) return;
+
+        // assert, make sure components are odd
+        auto componentsCount = _components.size();
+        assert( componentsCount % 2 != 0 );
+
+        // try to handle order of operations through buffer...
+        std::map<int, double*> bufferPtrsByComponentPosition;
+        std::vector<double> resultsBuffer;
+        resultsBuffer.reserve((componentsCount - 1) / 2 + 1);
+
+        // iterate through priorities of operator
+        for (auto &i : _opsIndexByOrder) {
+            auto &indexes = i.second;
+
+            // indexes list by ordered operators
+            for(auto y = indexes.begin(); y != indexes.end(); y++) {
+                auto opIndex = *y;
+                auto lReslvblIndex = opIndex - 1;
+                auto rReslvblIndex = opIndex + 1;
+                auto op = dynamic_cast<ResolvableOperation*>(_components.at(opIndex));
+
+                assert(op);
+
+                // try to get mot recent results
+                auto findResolvedSingleValue = [&bufferPtrsByComponentPosition, this](int index) -> std::pair<bool, double> {
+                    // find in buffer...
+                    auto foundInBuffer = bufferPtrsByComponentPosition.find(index);
+                    if(foundInBuffer != bufferPtrsByComponentPosition.end()) {
+                        return { true, *foundInBuffer->second };
+                    }
+
+                    // or from resolvables
+                    auto resolvable = dynamic_cast<ResolvableBase*>(_components.at(index));
+                    assert(resolvable);
+
+                    // get resolved
+                    return { false, resolvable->resolvedSingleValue() };
+                };
+
+                // get result
+                auto lPart = findResolvedSingleValue(lReslvblIndex);
+                auto rPart = findResolvedSingleValue(rReslvblIndex);
+                auto result = op->operate(lPart.second, rPart.second);
+
+                // add result to buffer
+                resultsBuffer.push_back(result);
+                auto ptr = &resultsBuffer.back();
+
+                // update backreferences values if any found
+                if (lPart.first) *bufferPtrsByComponentPosition[lReslvblIndex] = result;
+                if (rPart.first) *bufferPtrsByComponentPosition[rReslvblIndex] = result;
+
+                // update value ptrs
+                bufferPtrsByComponentPosition[lReslvblIndex] = ptr;
+                bufferPtrsByComponentPosition[rReslvblIndex] = ptr;
+
+                //
+                for(auto q : resultsBuffer) {
+                    std::cout << "[" << q << "]";
+                }
+                std::cout << std::endl;
+            }
+        }
+
+        // set resolved value as last value from buffer
+        _resolvedSingleValue = resultsBuffer.back();
+    }
 };
 
 }  // namespace Dicer
