@@ -21,8 +21,8 @@
 
 #include <string>
 
-#include "dicer/Parser.hpp"
-#include "dicer/Resolver.hpp"
+#include <dicer/Parser.hpp>
+#include <dicer/Resolver.hpp>
 
 // utility to shorten tests cases
 class TestUtility {

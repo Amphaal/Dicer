@@ -21,7 +21,7 @@
 
 #include <catch2/catch.hpp>
 
-#include "dicer/PEGTL/_.hpp"
+#include <dicer/PEGTL/_.hpp>
 #include "specialized/TestUtility.hpp"
 
 TEST_CASE("Must fail tests - simple dice throw", "[Parser]") {
