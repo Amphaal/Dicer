@@ -42,17 +42,15 @@ namespace PEGTL {
 
 // Here the actual grammar starts.
 
-using namespace tao::pegtl;
-
 // The calculator ignores all spaces and comments; space is a pegtl rule
 // that matches the usual ascii characters ' ', '\t', '\n' etc. In other
 // words, everything that is space is ignored.
 
-struct ignored : space {};
+struct ignored : pegtl::space {};
 
 // A number is a non-empty sequence of digits preceded by an optional sign.
 
-struct _number : seq< opt< one< '+', '-' > >, plus< digit > > {};
+struct _number : pegtl::seq< pegtl::opt< pegtl::one< '+', '-' > >, pegtl::plus< pegtl::digit > > {};
 struct number : _number {};
 
 struct expression;
@@ -60,41 +58,41 @@ struct expression;
 // A bracketed expression is introduced by a '(' and, in this grammar, must
 // proceed with an expression and a ')'.
 
-struct bracket : if_must< one< '(' >, expression, one< ')' > > {};
+struct bracket : pegtl::if_must< pegtl::one< '(' >, expression, pegtl::one< ')' > > {};
 
 //
 // composition of a dice throw
 //
 
-struct custom_dice_id : plus< alpha > {};
+struct custom_dice_id : pegtl::plus< pegtl::alpha > {};
 struct faces_value : _number {};
-struct faced_dice : sor<faces_value, bracket> {};
-struct faces_part_of_throw : sor<custom_dice_id, faced_dice> {};
-struct dice_separator : one< 'd', 'D' > {};
+struct faced_dice : pegtl::sor<faces_value, bracket> {};
+struct faces_part_of_throw : pegtl::sor<custom_dice_id, faced_dice> {};
+struct dice_separator : pegtl::one< 'd', 'D' > {};
 struct how_many : _number {};
-    struct dice_throw : seq< how_many, dice_separator, faces_part_of_throw, opt<Dicer::ResolvingMethods>> {};
+    struct dice_throw : pegtl::seq< how_many, dice_separator, faces_part_of_throw, pegtl::opt<Dicer::ResolvingMethods>> {};
 
 //
 // macro
 //
 
-struct macro : plus< alpha > {};
+struct macro : pegtl::plus< pegtl::alpha > {};
 
 // An atomic expression, i.e. one without operators, is either a number or
 // a bracketed expression.
 
-struct atomic : sor< bracket, dice_throw, number, macro > {};
+struct atomic : pegtl::sor< bracket, dice_throw, number, macro > {};
 
 // An expression is a non-empty list of atomic expressions where each pair
 // of atomic expressions is separated by an infix operator and we allow
 // the rule ignored as padding (before and after every single expression).
 
-struct expression : list< atomic, Dicer::CommandOperators, ignored > {};
+struct expression : pegtl::list< atomic, Dicer::CommandOperators, ignored > {};
 
 // The top-level grammar allows one expression and then expects eof.
 
 struct grammar
-    : must< expression, eof >
+    : pegtl::must< expression, pegtl::eof >
 {};
 
 }  // namespace PEGTL

@@ -74,13 +74,13 @@ struct action< number > {
 //
 
 template<>
-struct action< one< '(' > > {
+struct action< pegtl::one< '(' > > {
     static void apply0(Dicer::ThrowCommandExtract& r) {
         r.openStack();
     }
 };
 template<>
-struct action< one< ')' > > {
+struct action< pegtl::one< ')' > > {
     static void apply0(Dicer::ThrowCommandExtract& r) {
         r.closeStack();
     }

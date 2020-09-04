@@ -33,7 +33,7 @@ namespace Dicer {
 
 // TODO comparaison operators
 
-using namespace tao::pegtl;
+namespace pegtl = tao::pegtl;
 
 class CommandOperator : public IDescriptible {
  public:
@@ -47,7 +47,7 @@ class CommandOperator : public IDescriptible {
     }
 };
 
-class MultiplyOperator : public CommandOperator, public tao::pegtl::one< '*' > {
+class MultiplyOperator : public CommandOperator, public pegtl::one< '*' > {
  public:
     const std::string operatorAsString() const override {
         return "*";
@@ -62,7 +62,7 @@ class MultiplyOperator : public CommandOperator, public tao::pegtl::one< '*' > {
     }
 };
 
-class DivideOperator : public CommandOperator, public tao::pegtl::one< '/' > {
+class DivideOperator : public CommandOperator, public pegtl::one< '/' > {
  public:
     const std::string operatorAsString() const override {
         return "/";
@@ -77,7 +77,7 @@ class DivideOperator : public CommandOperator, public tao::pegtl::one< '/' > {
     }
 };
 
-class AdditionOperator : public CommandOperator, public tao::pegtl::one< '+' > {
+class AdditionOperator : public CommandOperator, public pegtl::one< '+' > {
  public:
     const std::string operatorAsString() const override {
         return "+";
@@ -92,7 +92,7 @@ class AdditionOperator : public CommandOperator, public tao::pegtl::one< '+' > {
     }
 };
 
-class SubstractionOperator : public CommandOperator, public tao::pegtl::one< '-' > {
+class SubstractionOperator : public CommandOperator, public pegtl::one< '-' > {
  public:
     const std::string operatorAsString() const override {
         return "-";
@@ -107,7 +107,7 @@ class SubstractionOperator : public CommandOperator, public tao::pegtl::one< '-'
     }
 };
 
-class CommandOperators : public sor< MultiplyOperator, DivideOperator, AdditionOperator, SubstractionOperator > {
+class CommandOperators : public pegtl::sor< MultiplyOperator, DivideOperator, AdditionOperator, SubstractionOperator > {
  public:
     static CommandOperator* get(const std::string &opAsStr) {
         if(!_self) _self = new CommandOperators;

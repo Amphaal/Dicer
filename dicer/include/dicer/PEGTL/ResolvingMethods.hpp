@@ -29,6 +29,8 @@
 
 #include "dicer/_Base.hpp"
 
+namespace pegtl = tao::pegtl;
+
 namespace Dicer {
 
 //
@@ -40,8 +42,6 @@ namespace Dicer {
 // CriticalHigh  // TODO(stagiaire)
 // Critical      // TODO(stagiaire)
 
-using namespace tao::pegtl;
-
 class DiceThrowResolvingMethod {
  public:
     virtual ~DiceThrowResolvingMethod() {}
@@ -50,7 +50,7 @@ class DiceThrowResolvingMethod {
     virtual const double resolve(const std::vector<DiceFaceResult> &results) const = 0;
 };
 
-class AggregateRM : public DiceThrowResolvingMethod, public tao::pegtl::one< '+' > {
+class AggregateRM : public DiceThrowResolvingMethod, public pegtl::one< '+' > {
  public:
     const std::string description() const override {
         return "Performs an addition on all the results";
@@ -63,7 +63,7 @@ class AggregateRM : public DiceThrowResolvingMethod, public tao::pegtl::one< '+'
     }
 };
 
-class HighestValueRM : public DiceThrowResolvingMethod, public tao::pegtl::string<'m', 'a', 'x'> {
+class HighestValueRM : public DiceThrowResolvingMethod, public pegtl::string<'m', 'a', 'x'> {
  public:
     const std::string description() const override {
         return "Picks the highest value of throw";
@@ -76,7 +76,7 @@ class HighestValueRM : public DiceThrowResolvingMethod, public tao::pegtl::strin
     }
 };
 
-class LowestValueRM : public DiceThrowResolvingMethod, public tao::pegtl::string<'m', 'i', 'n'> {
+class LowestValueRM : public DiceThrowResolvingMethod, public pegtl::string<'m', 'i', 'n'> {
  public:
     const std::string description() const override {
         return "Picks the lowest value of throw";
@@ -89,7 +89,7 @@ class LowestValueRM : public DiceThrowResolvingMethod, public tao::pegtl::string
     }
 };
 
-class ResolvingMethods : public sor< AggregateRM, LowestValueRM, HighestValueRM > {
+class ResolvingMethods : public pegtl::sor< AggregateRM, LowestValueRM, HighestValueRM > {
  public:
     static DiceThrowResolvingMethod* get(const std::string &funcName) {
         if(!_self) _self = new ResolvingMethods;
