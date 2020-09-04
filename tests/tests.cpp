@@ -72,41 +72,41 @@ TEST_CASE("Must fail tests - simple dice throw", "[Parser]") {
 
 TEST_CASE("Basic Maths", "[Resolver]") {
     // order of operators
-    REQUIRE(TestUtility::pAndR("8 / 2 + 4 * 2 - 8").result == 4);
-    REQUIRE(TestUtility::pAndR("8 + 2 * 4 - 2 / 8").result == 15.75);
-    REQUIRE(TestUtility::pAndR("8 + 2 + 6 - 2 * 4 / 12 - 2 / 8 * 20 - 4").result == Approx(6.3333));
+    REQUIRE(TestUtility::pAndR("8 / 2 + 4 * 2 - 8").singleResult() == 4);
+    REQUIRE(TestUtility::pAndR("8 + 2 * 4 - 2 / 8").singleResult() == 15.75);
+    REQUIRE(TestUtility::pAndR("8 + 2 + 6 - 2 * 4 / 12 - 2 / 8 * 20 - 4").singleResult() == Approx(6.3333));
 
     // force groupings
-    REQUIRE(TestUtility::pAndR("(23)").result == 23);
-    REQUIRE(TestUtility::pAndR("(2 + 4)").result == 6);
-    REQUIRE(TestUtility::pAndR("(8 + 2) * (4 - 2) / 8").result == 2.5);
-    REQUIRE(TestUtility::pAndR("8 / (2 + 4) * (2 - 8)").result == -8);
+    REQUIRE(TestUtility::pAndR("(23)").singleResult() == 23);
+    REQUIRE(TestUtility::pAndR("(2 + 4)").singleResult() == 6);
+    REQUIRE(TestUtility::pAndR("(8 + 2) * (4 - 2) / 8").singleResult() == 2.5);
+    REQUIRE(TestUtility::pAndR("8 / (2 + 4) * (2 - 8)").singleResult() == -8);
 
     // nesting groupings
-    REQUIRE(TestUtility::pAndR("(23 - 12 * (14 - 8 + 2 * (15 / 2)))").result == -229);
+    REQUIRE(TestUtility::pAndR("(23 - 12 * (14 - 8 + 2 * (15 / 2)))").singleResult() == -229);
 }
 
 TEST_CASE("Dice Throw", "[Parser]") {
-    REQUIRE_FALSE(TestUtility::pAndR("3d6").isSingleResolvable);
+    REQUIRE_FALSE(TestUtility::pAndR("3d6").hasSingleResult());
 
     int i = 100;
     while(i) {
         // basic cases
-        REQUIRE(TestUtility::pAndR("1d6").between(1, 6));
+        REQUIRE(TestUtility::pAndR("1d6").isBetween(1, 6));
 
         // trying every handled resolving methods
-        REQUIRE(TestUtility::pAndR("3d6+").between(3, 18));
-        REQUIRE(TestUtility::pAndR("3d6min").between(1, 6));
-        REQUIRE(TestUtility::pAndR("3d6max").between(1, 6));
+        REQUIRE(TestUtility::pAndR("3d6+").isBetween(3, 18));
+        REQUIRE(TestUtility::pAndR("3d6min").isBetween(1, 6));
+        REQUIRE(TestUtility::pAndR("3d6max").isBetween(1, 6));
 
         // meaningless but must work
-        REQUIRE(TestUtility::pAndR("1d6+").between(1, 6));
+        REQUIRE(TestUtility::pAndR("1d6+").isBetween(1, 6));
 
         // grouping expression
-        REQUIRE(TestUtility::pAndR("1d(3+3)").between(1, 6));
-        REQUIRE(TestUtility::pAndR("1d(1d8 +3)").between(1, 11));
-        REQUIRE(TestUtility::pAndR("1d(1d8 +3) * 2").between(2, 22));
-        REQUIRE(TestUtility::pAndR("1d(1d8 +3) + 1d4").between(2, 15));
+        REQUIRE(TestUtility::pAndR("1d(3+3)").isBetween(1, 6));
+        REQUIRE(TestUtility::pAndR("1d(1d8 +3)").isBetween(1, 11));
+        REQUIRE(TestUtility::pAndR("1d(1d8 +3) * 2").isBetween(2, 22));
+        REQUIRE(TestUtility::pAndR("1d(1d8 +3) + 1d4").isBetween(2, 15));
 
         i--;
     }

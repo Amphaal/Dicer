@@ -28,14 +28,37 @@
 
 namespace Dicer {
 
-struct Resolved {
-    std::string asString;
-    bool isSingleResolvable = false;
-    double result = -1;
+class Resolver;
 
-    bool between(double val1, double val2) const {
-        return result >= val1 && result <= val2;
+struct Resolved {
+    friend Resolver;
+
+ public:
+    std::string asString() const {
+        return hasSingleResult() ? _commandAndResultAsString + " => " + _singleResultAsString : _commandAndResultAsString;
     }
+
+    std::string commandAndResultAsString() const {
+        return _commandAndResultAsString;
+    }
+
+    bool hasSingleResult() const {
+        return _isSingleResolvable;
+    }
+
+    double singleResult() const {
+        return _singleResult;
+    }
+
+    bool isBetween(double val1, double val2) const {
+        return _singleResult >= val1 && _singleResult <= val2;
+    }
+
+ private:
+    std::string _commandAndResultAsString;
+    std::string _singleResultAsString;
+    bool _isSingleResolvable = false;
+    double _singleResult = -1;
 };
 
 class Resolver {
@@ -44,19 +67,17 @@ class Resolver {
         // recursive resolve
         extract._master.resolve(gContext, pContext);
 
-        // get debug text
-        auto descr = extract._master.description();
-
         Resolved r;
+
+        // get debug text
+        r._commandAndResultAsString = extract.command().signature() + " : " + extract._master.description();
 
         // if single value resolvable try to get it
         if(extract._master.isSingleValueResolvable()) {
-            r.isSingleResolvable = true;
-            r.result = extract._master.resolvedSingleValue();
-            descr += " => " + ResolvableBase::strResolved(r.result);
+            r._isSingleResolvable = true;
+            r._singleResult = extract._master.resolvedSingleValue();
+            r._singleResultAsString = ResolvableBase::strResolved(r._singleResult);
         }
-
-        r.asString = extract.command().signature() + " : " + descr;
 
         return r;
     }
