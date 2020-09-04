@@ -6,7 +6,7 @@ endif()
 #declare project
 cmake_minimum_required(VERSION 3.10.2) #stick to 18.04 Ubuntu LTS version
 project(Dicer
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "Dice throws and Macros parser API"
     HOMEPAGE_URL "https://github.com/Amphaal/Dicer"
     LANGUAGES CXX
