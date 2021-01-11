@@ -1,7 +1,7 @@
 #PEGTL
 SET(PEGTL_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 SET(PEGTL_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(PEGTL)
+add_subdirectory(PEGTL EXCLUDE_FROM_ALL)
 
 #lib
 add_library(dicer STATIC)
